@@ -9,8 +9,8 @@ response=$(curl -s -X POST --data '{"jsonrpc":"2.0","method":"eth_call","params"
 # Extract the hexadecimal result from the response
 hex_value=$(echo $response | jq -r '.result')
 
-# Convert the hexadecimal value to decimal using printf
-decimal_value=$(printf "%d" "$hex_value")
+# Convert the hexadecimal value to decimal using Python
+decimal_value=$(python3 -c "print(int('$hex_value', 16))")
 
 # Output the result
 echo "Total supply: $decimal_value"
