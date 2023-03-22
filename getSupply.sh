@@ -9,11 +9,8 @@ response=$(curl -s -X POST --data '{"jsonrpc":"2.0","method":"eth_call","params"
 # Extract the hexadecimal result from the response
 hex_value=$(echo $response | jq -r '.result')
 
-# Remove the "0x" prefix from the hexadecimal value
-cleaned_hex_value="${hex_value#*x}"
-
-# Convert the cleaned hexadecimal value to decimal
-decimal_value=$(echo "ibase=16; obase=10; $cleaned_hex_value" | bc)
+# Convert the hexadecimal value to decimal using printf
+decimal_value=$(printf "%d" "$hex_value")
 
 # Output the result
 echo "Total supply: $decimal_value"
