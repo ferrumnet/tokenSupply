@@ -9,11 +9,11 @@ response=$(curl -s -X POST --data '{"jsonrpc":"2.0","method":"eth_call","params"
 # Extract the hexadecimal result from the response
 hex_value=$(echo $response | jq -r '.result')
 
-# Convert the hexadecimal value to uppercase
-uppercase_hex_value=$(echo $hex_value | tr '[:lower:]' '[:upper:]')
+# Remove the "0x" prefix from the hexadecimal value
+cleaned_hex_value="${hex_value#*x}"
 
-# Convert the uppercase hexadecimal value to decimal
-decimal_value=$(echo "ibase=16; obase=10; ${uppercase_hex_value#*X}" | bc)
+# Convert the cleaned hexadecimal value to decimal
+decimal_value=$(echo "ibase=16; obase=10; $cleaned_hex_value" | bc)
 
 # Output the result
 echo "Total supply: $decimal_value"
