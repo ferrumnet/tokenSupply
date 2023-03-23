@@ -42,8 +42,8 @@ const getTotalSupplyAcrossNetworks = async () => {
 
       console.log(`Network: ${network}`);
       console.log(`Decimals: ${decimals}`);
-      console.log(`Total supply (in tokens): ${totalSupply.toFixed()}`);
-      console.log(`Total supply (in Ether): ${totalSupply.toFixed(decimals)}`);
+      // console.log(`Total supply (in tokens): ${totalSupply.toFixed()}`);
+      console.log(`Total supply (in Ether Base): ${totalSupply.toFixed(decimals)}`);
       console.log('');
 
       totalSupplyAcrossNetworks = totalSupplyAcrossNetworks.plus(totalSupply);
@@ -52,7 +52,7 @@ const getTotalSupplyAcrossNetworks = async () => {
     }
   }
 
-  console.log(`Total supply across networks (in Ether): ${totalSupplyAcrossNetworks.toFixed()}`);
+  console.log(`Total supply across networks (in Ether Base): ${totalSupplyAcrossNetworks.toFixed()}`);
 };
 
 getTotalSupplyAcrossNetworks();
