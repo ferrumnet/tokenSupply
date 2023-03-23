@@ -1,1 +1,6 @@
-# tokenSupply
+# Token Supply
+
+## Retrieve Supply of a token across networks
+1. Can provide different contracts for a token on each network
+2. Checks for decimals of a token on each network
+3. Sums value according to required decimal conversion and provides an across network totalSupplySum
