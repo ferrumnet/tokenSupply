@@ -16,7 +16,7 @@ const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const getSupplyAcrossNetworks_1 = require("./getSupplyAcrossNetworks");
 const app = (0, express_1.default)();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.use(body_parser_1.default.json());
 app.get('/totalSupplyAcrossNetworks', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
