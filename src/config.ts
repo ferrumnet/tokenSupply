@@ -3,32 +3,25 @@ import { NetworkConfigurations } from "./getSupplyAcrossNetworks";
 
 const networks: NetworkConfigurations = {
   Ethereum: {
-    jsonRpcUrl: "ADD_YOUR_ETHEREUM_RPC_ENDPOINT",
-    tokenContractAddress: "ADD_YOUR_ETHEREUM_TOKEN_SMART_CONTRACT_ADDRESS_IN_LOWER_CASE",
+    jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
+    tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
   },
   BSC: {
-    jsonRpcUrl: "ADD_YOUR_BSC_RPC_ENDPOINT",
-    tokenContractAddress: "ADD_YOUR_BSC_TOKEN_SMART_CONTRACT_ADDRESS_IN_LOWER_CASE",
+    jsonRpcUrl: "https://nd-605-906-592.p2pify.com/df9065025f5e18317e708040b1f2ab13",
+    tokenContractAddress: "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc",
   },
-/* 
-You can keep adding as many networks as your token is deployed on, 
-just provide a network object with the key of network name such as Polygon, Arbitrum etc
-with the jsonRpcUrl of your choice, this can be a public RPC Url (Not recommended due to rate limiting)
-or a paid one through Chainstack or other providers. Also provide the token smart contract address in lower
-case. See example
-    Arbitrum: {
-        jsonRpcUrl: "https://arb1.arbitrum.io/rpc",
-        tokenContractAddress: "0x9f6abbf0ba6b5bfa27f4deb6597cc6ec20573fda",
-    },
-    Avalanche: {
-        jsonRpcUrl: "https://api.avax.network/ext/bc/C/rpc",
-        tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    }
-
-*/
-  
-
-
+  Polygon: {
+    jsonRpcUrl: "https://nd-662-671-431.p2pify.com/72aea5a70bbd5482f9a498540072b1e1",
+    tokenContractAddress: "0xd99bafe5031cc8b345cb2e8c80135991f12d7130",
+  },
+  Arbitrum: {
+    jsonRpcUrl: "https://nd-674-145-610.p2pify.com/bc9acaa6f1386224186fb1e794c40c14",
+    tokenContractAddress: "0x9f6abbf0ba6b5bfa27f4deb6597cc6ec20573fda",
+  },
+  Avalanche: {
+    jsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
+    tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
+  }
 };
 
 export { networks };
