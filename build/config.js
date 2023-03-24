@@ -21,6 +21,6 @@ const networks = {
     Avalanche: {
         jsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
         tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    },
+    }
 };
 exports.networks = networks;
