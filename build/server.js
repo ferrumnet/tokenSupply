@@ -15,13 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const getSupplyAcrossNetworks_1 = require("./getSupplyAcrossNetworks");
+const config_1 = require("./config");
 const app = (0, express_1.default)();
 const port = process.env.PORT || 8080;
 app.use(body_parser_1.default.json());
-app.get('/totalSupplyAcrossNetworks', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/totalSupplyAcrossNetworks", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const totalSupply = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)();
-        res.json({ totalSupply });
+        const totalSupply = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(config_1.networks);
+        res.json(totalSupply);
     }
     catch (error) {
         res.status(500).json({ error: 'An error occurred while fetching the total supply.' });
@@ -29,7 +30,7 @@ app.get('/totalSupplyAcrossNetworks', (req, res) => __awaiter(void 0, void 0, vo
 }));
 app.get('/totalSupply', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { total } = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)();
+        const { total } = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(config_1.networks);
         res.send(total);
     }
     catch (error) {
