@@ -1,27 +1,70 @@
 // src/config.ts
 import { NetworkConfigurations } from "./getSupplyAcrossNetworks";
 
-const networks: NetworkConfigurations = {
-  Ethereum: {
+const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
+
+const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
+const chainId = 56;
+
+interface ChainIdToNetwork {
+  [key: string]: {
+    jsonRpcUrl: string;
+    name: string;
+  };
+}
+
+const chainIdToNetworkMap: ChainIdToNetwork = {
+  "1": {
     jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
-    tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
+    name: "Ethereum"
   },
-  BSC: {
+  "56": {
     jsonRpcUrl: "https://nd-605-906-592.p2pify.com/df9065025f5e18317e708040b1f2ab13",
-    tokenContractAddress: "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc",
+    name: "BSC"
   },
-  Polygon: {
+  "137": {
     jsonRpcUrl: "https://nd-662-671-431.p2pify.com/72aea5a70bbd5482f9a498540072b1e1",
-    tokenContractAddress: "0xd99bafe5031cc8b345cb2e8c80135991f12d7130",
+    name: "Polygon"
   },
-  Arbitrum: {
+  "42161": {
     jsonRpcUrl: "https://nd-674-145-610.p2pify.com/bc9acaa6f1386224186fb1e794c40c14",
-    tokenContractAddress: "0x9f6abbf0ba6b5bfa27f4deb6597cc6ec20573fda",
+    name: "Arbitrum One"
   },
-  Avalanche: {
+  "43114": {
     jsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
-    tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
+    name: "Avalanche"
   }
 };
 
-export { networks };
+interface ApiResponse {
+  body: {
+    currencyAddressesByNetworks: {
+      network: {
+        chainId: string;
+      };
+      tokenContractAddress: string;
+    }[];
+  };
+}
+
+async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
+  const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
+  const response = await fetch(url);
+  const data: ApiResponse = await response.json();
+
+  const networks: NetworkConfigurations = {};
+
+  for (const item of data.body.currencyAddressesByNetworks) {
+    const network = chainIdToNetworkMap[item.network.chainId];
+    if (network) {
+      networks[network.name] = {
+        jsonRpcUrl: network.jsonRpcUrl,
+        tokenContractAddress: item.tokenContractAddress
+      };
+    }
+  }
+
+  return networks;
+}
+
+export { getNetworkConfigurations };
