@@ -1,6 +1,48 @@
+// src/getSupplyAcrossNetworks.ts
 import { AbiItem } from "web3-utils";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
+import erc20Abi from "./erc20Abi.json";
+import axios, { AxiosResponse } from "axios";
+import { chainIdToNetworkMap, getNetworkConfigurations, nonCirculatingSupplyAddressesConfig } from "./config";
+import { NonCirculatingSupplyBalance } from './types';
+import { getBep2TokenBalance, getErc20TokenBalance } from './utils';
+
+// export interface NonCirculatingSupplyBalance {
+//   ChainId: string;
+//   Address: string;
+//   TokenContractAddress: string;
+//   Name: string;
+//   balance: BigNumber;
+// }
+
+export async function getNonCirculatingSupplyBalances(): Promise<{balances: NonCirculatingSupplyBalance[], total: BigNumber}> {
+  const nonCirculatingSupplyBalances: NonCirculatingSupplyBalance[] = [];
+  let total = new BigNumber(0);
+
+  for (const { ChainId, Address, JsonRpcUrl, TokenContractAddress, Name } of nonCirculatingSupplyAddressesConfig) {
+    let balance: BigNumber;
+    if (ChainId === "bnbBeaconChain") {
+      balance = new BigNumber(await getBep2TokenBalance(Address, JsonRpcUrl, TokenContractAddress));
+    } else {
+      balance = new BigNumber(await getErc20TokenBalance(Address, JsonRpcUrl, TokenContractAddress));
+    }
+    total = total.plus(balance);
+    nonCirculatingSupplyBalances.push({
+      ChainId,
+      Address,
+      TokenContractAddress,
+      Name,
+      Balance: balance
+    });
+  }
+
+  return {
+  balances: nonCirculatingSupplyBalances,
+  total: total,
+  };
+  }
+
 
 interface NetworkConfiguration {
   jsonRpcUrl: string;
@@ -63,3 +105,34 @@ export const getTotalSupplyAcrossNetworks = async (
 
   return { ...supplyPerNetwork, total: totalSupply.toString() };
 };
+
+const erc20ABI: AbiItem[] = [
+  // Add necessary parts of the ABI, such as "balanceOf"
+  {
+    constant: true,
+    inputs: [],
+    name: "totalSupply",
+    outputs: [{ name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "view" as const,
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    payable: false,
+    stateMutability: "view" as const,
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [{ name: "_owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "balance", type: "uint256" }],
+    payable: false,
+    stateMutability: "view" as const,
+    type: "function",
+  },
+];

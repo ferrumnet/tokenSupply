@@ -12,9 +12,46 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTotalSupplyAcrossNetworks = void 0;
+exports.getTotalSupplyAcrossNetworks = exports.getNonCirculatingSupplyBalances = void 0;
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const web3_1 = __importDefault(require("web3"));
+const config_1 = require("./config");
+const utils_1 = require("./utils");
+// export interface NonCirculatingSupplyBalance {
+//   ChainId: string;
+//   Address: string;
+//   TokenContractAddress: string;
+//   Name: string;
+//   balance: BigNumber;
+// }
+function getNonCirculatingSupplyBalances() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const nonCirculatingSupplyBalances = [];
+        let total = new bignumber_js_1.default(0);
+        for (const { ChainId, Address, JsonRpcUrl, TokenContractAddress, Name } of config_1.nonCirculatingSupplyAddressesConfig) {
+            let balance;
+            if (ChainId === "bnbBeaconChain") {
+                balance = new bignumber_js_1.default(yield (0, utils_1.getBep2TokenBalance)(Address, JsonRpcUrl, TokenContractAddress));
+            }
+            else {
+                balance = new bignumber_js_1.default(yield (0, utils_1.getErc20TokenBalance)(Address, JsonRpcUrl, TokenContractAddress));
+            }
+            total = total.plus(balance);
+            nonCirculatingSupplyBalances.push({
+                ChainId,
+                Address,
+                TokenContractAddress,
+                Name,
+                Balance: balance
+            });
+        }
+        return {
+            balances: nonCirculatingSupplyBalances,
+            total: total,
+        };
+    });
+}
+exports.getNonCirculatingSupplyBalances = getNonCirculatingSupplyBalances;
 const getTotalSupplyAcrossNetworks = (networks) => __awaiter(void 0, void 0, void 0, function* () {
     const erc20ABI = [
         // Some parts of the ABI have been removed for brevity
@@ -61,3 +98,33 @@ const getTotalSupplyAcrossNetworks = (networks) => __awaiter(void 0, void 0, voi
     return Object.assign(Object.assign({}, supplyPerNetwork), { total: totalSupply.toString() });
 });
 exports.getTotalSupplyAcrossNetworks = getTotalSupplyAcrossNetworks;
+const erc20ABI = [
+    // Add necessary parts of the ABI, such as "balanceOf"
+    {
+        constant: true,
+        inputs: [],
+        name: "totalSupply",
+        outputs: [{ name: "", type: "uint256" }],
+        payable: false,
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        constant: true,
+        inputs: [],
+        name: "decimals",
+        outputs: [{ name: "", type: "uint8" }],
+        payable: false,
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        constant: true,
+        inputs: [{ name: "_owner", type: "address" }],
+        name: "balanceOf",
+        outputs: [{ name: "balance", type: "uint256" }],
+        payable: false,
+        stateMutability: "view",
+        type: "function",
+    },
+];
