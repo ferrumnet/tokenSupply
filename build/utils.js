@@ -57,14 +57,3 @@ function getErc20TokenBalance(address, jsonRpcUrl, tokenContractAddress) {
     });
 }
 exports.getErc20TokenBalance = getErc20TokenBalance;
-// export async function getErc20TokenBalance(address: string, jsonRpcUrl: string, tokenContractAddress: string): Promise < number > {
-//     const web3 = new Web3(jsonRpcUrl);
-//     const tokenContract = new web3.eth.Contract(erc20Abi, tokenContractAddress);
-//     try {
-//         const balance = await tokenContract.methods.balanceOf(address).call();
-//         return parseFloat(web3.utils.fromWei(balance, 'ether'));
-//     } catch (error) {
-//         console.error(`Error fetching ERC20 balance for address $ {address}:` , error);
-//         throw error;
-//     }
-// }
