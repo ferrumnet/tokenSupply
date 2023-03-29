@@ -1,6 +1,5 @@
 // src/config.ts
 import { NetworkConfigurations } from "./getSupplyAcrossNetworks";
-// Add this import at the top of your config.ts file
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import erc20Abi from "./erc20Abi.json"; // Make sure you have the ERC20 ABI JSON file in your project
