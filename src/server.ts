@@ -59,6 +59,25 @@ app.get('/nonCirculatingSupplyBalance', async (req, res) => {
   }
 });
 
+app.get('/circulatingSupplyBalance', async (req, res) => {
+  try {
+    const networks = await getNetworkConfigurations();
+    const totalSupplyData = await getTotalSupplyAcrossNetworks(networks);
+    const totalSupply = new BigNumber(totalSupplyData.total);
+
+    const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances();
+    const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.Balance), new BigNumber(0));
+
+    const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
+    res.send(circulatingSupply.toString());
+  } catch (error) {
+    console.error('Error fetching circulating supply balance:', error);
+    res.status(500).json({ error: 'Failed to fetch circulating supply balance' });
+  }
+});
+
+
+
 
 
 app.listen(port, () => {

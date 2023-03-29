@@ -66,6 +66,21 @@ app.get('/nonCirculatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, 
         res.status(500).json({ error: 'Failed to fetch non-circulating supply balances' });
     }
 }));
+app.get('/circulatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const networks = yield (0, config_1.getNetworkConfigurations)();
+        const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
+        const totalSupply = new bignumber_js_1.default(totalSupplyData.total);
+        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
+        const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.Balance), new bignumber_js_1.default(0));
+        const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
+        res.send(circulatingSupply.toString());
+    }
+    catch (error) {
+        console.error('Error fetching circulating supply balance:', error);
+        res.status(500).json({ error: 'Failed to fetch circulating supply balance' });
+    }
+}));
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
