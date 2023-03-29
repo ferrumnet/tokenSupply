@@ -83,13 +83,13 @@ const nonCirculatingSupplyAddressesConfig = [
         JsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
         ChainId: "43114"
     },
-    {
-        Name: "Deployer",
-        Address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
-        TokenContractAddress: "FRM-DE7",
-        JsonRpcUrl: "https://dex.binance.org",
-        ChainId: "bnbBeaconChain"
-    },
+    // {
+    //   Name: "Deployer",
+    //   Address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
+    //   TokenContractAddress: "FRM-DE7",
+    //   JsonRpcUrl: "https://dex.binance.org",
+    //   ChainId: "bnbBeaconChain"
+    // },
     {
         Name: "Treasury",
         Address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
