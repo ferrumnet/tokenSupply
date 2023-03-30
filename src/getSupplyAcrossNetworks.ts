@@ -9,32 +9,38 @@ import { NonCirculatingSupplyBalance } from './types';
 import { getBep2TokenBalance, getErc20TokenBalance } from './utils';
 import { NetworkConfigurations } from "./types";
 
-export async function getNonCirculatingSupplyBalances(): Promise<{balances: NonCirculatingSupplyBalance[], total: BigNumber}> {
+export async function getNonCirculatingSupplyBalances(tokenContractAddress: string, chainId: number): Promise < {
+  balances: NonCirculatingSupplyBalance[];total: BigNumber
+} > {
   const nonCirculatingSupplyBalances: NonCirculatingSupplyBalance[] = [];
-  let total = new BigNumber(0);  
-
-  for (const { chainId, address, jsonRpcUrl, tokenContractAddress, name } of await getNonCirculatingSupplyAddressConfigurations()) {
-    let balance: BigNumber;
-    if (chainId === "bnbBeaconChain") {
-      balance = new BigNumber(await getBep2TokenBalance(address, jsonRpcUrl, tokenContractAddress));
-    } else {
-      balance = new BigNumber(await getErc20TokenBalance(address, jsonRpcUrl, tokenContractAddress));
-    }
-    total = total.plus(balance);
-    nonCirculatingSupplyBalances.push({
-      chainId,
-      address,
-      tokenContractAddress,
-      name,
-      balance: balance
-    });
+  let total = new BigNumber(0);
+  for (const {
+          chainId: currentChainId,
+          address,
+          jsonRpcUrl,
+          tokenContractAddress: currentTokenContractAddress,
+          name,
+      } of await getNonCirculatingSupplyAddressConfigurations(tokenContractAddress, chainId)) {
+      let balance: BigNumber;
+      if (currentChainId === "bnbBeaconChain") {
+          balance = new BigNumber(await getBep2TokenBalance(address, jsonRpcUrl, currentTokenContractAddress));
+      } else {
+          balance = new BigNumber(await getErc20TokenBalance(address, jsonRpcUrl, currentTokenContractAddress));
+      }
+      total = total.plus(balance);
+      nonCirculatingSupplyBalances.push({
+          chainId: currentChainId,
+          address,
+          tokenContractAddress: currentTokenContractAddress,
+          name,
+          balance: balance,
+      });
   }
-
   return {
-  balances: nonCirculatingSupplyBalances,
-  total: total,
+      balances: nonCirculatingSupplyBalances,
+      total: total,
   };
-  }
+}
 
 export const getTotalSupplyAcrossNetworks = async (
   networks: NetworkConfigurations

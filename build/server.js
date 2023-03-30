@@ -23,7 +23,12 @@ const port = process.env.PORT || 8080;
 app.use(body_parser_1.default.json());
 app.get("/totalSupplyAcrossNetworks", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const networks = yield (0, config_1.getNetworkConfigurations)();
+        const { tokenContractAddress, chainId } = req.query;
+        if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+            res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+            return;
+        }
+        const networks = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         res.json(totalSupplyData);
     }
@@ -33,7 +38,12 @@ app.get("/totalSupplyAcrossNetworks", (req, res) => __awaiter(void 0, void 0, vo
 }));
 app.get('/totalSupply', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const networks = yield (0, config_1.getNetworkConfigurations)();
+        const { tokenContractAddress, chainId } = req.query;
+        if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+            res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+            return;
+        }
+        const networks = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         res.send(totalSupplyData.total);
     }
@@ -43,12 +53,22 @@ app.get('/totalSupply', (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 }));
 app.get("/nonCirculatingSupplyAddresses", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const nonCirculatingSupplyAddressConfigurations = yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)();
+    const { tokenContractAddress, chainId } = req.query;
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+        res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+        return;
+    }
+    const nonCirculatingSupplyAddressConfigurations = yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, Number(chainId));
     res.json(nonCirculatingSupplyAddressConfigurations);
 }));
 app.get('/nonCirculatingSupplyBalancesByAddress', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const nonCirculatingSupplyBalances = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
+        const { tokenContractAddress, chainId } = req.query;
+        if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+            res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+            return;
+        }
+        const nonCirculatingSupplyBalances = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId));
         res.json(nonCirculatingSupplyBalances);
     }
     catch (error) {
@@ -58,7 +78,12 @@ app.get('/nonCirculatingSupplyBalancesByAddress', (req, res) => __awaiter(void 0
 }));
 app.get('/nonCirculatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
+        const { tokenContractAddress, chainId } = req.query;
+        if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+            res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+            return;
+        }
+        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId));
         const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.balance), new bignumber_js_1.default(0));
         res.send(totalBalance.toString());
     }
@@ -69,10 +94,15 @@ app.get('/nonCirculatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, 
 }));
 app.get('/circulatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const networks = yield (0, config_1.getNetworkConfigurations)();
+        const { tokenContractAddress, chainId } = req.query;
+        if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+            res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+            return;
+        }
+        const networks = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         const totalSupply = new bignumber_js_1.default(totalSupplyData.total);
-        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
+        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId));
         const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.balance), new bignumber_js_1.default(0));
         const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
         res.send(circulatingSupply.toString());

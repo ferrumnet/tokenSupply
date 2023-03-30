@@ -18,8 +18,6 @@ const node_fetch_1 = __importDefault(require("node-fetch"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
-const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
-const chainId = 56;
 exports.chainIdToNetworkMap = {
     "1": {
         jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
@@ -42,7 +40,7 @@ exports.chainIdToNetworkMap = {
         name: "Avalanche"
     }
 };
-function getNetworkConfigurations() {
+function getNetworkConfigurations(tokenContractAddress, chainId) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
         const response = yield (0, node_fetch_1.default)(url);
@@ -63,7 +61,7 @@ function getNetworkConfigurations() {
 }
 exports.getNetworkConfigurations = getNetworkConfigurations;
 exports.nonCirculatingSupplyAddressesConfigInput = JSON.parse(fs_1.default.readFileSync(path_1.default.join(__dirname, "../config/", "nonCirculatingSupplyAddressesConfig.json"), "utf-8"));
-function getNonCirculatingSupplyAddressConfigurations() {
+function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress, chainId) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
         const response = yield (0, node_fetch_1.default)(url);

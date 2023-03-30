@@ -10,9 +10,6 @@ import path from "path";
 
 const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
 
-const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
-const chainId = 56;
-
 export const chainIdToNetworkMap: ChainIdToNetwork = {
   "1": {
     jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
@@ -36,7 +33,7 @@ export const chainIdToNetworkMap: ChainIdToNetwork = {
   }
 };
 
-async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
+async function getNetworkConfigurations(tokenContractAddress: string, chainId: number): Promise<NetworkConfigurations> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
   const data: GatewayCabnApiResponse = await response.json();
@@ -60,7 +57,7 @@ export const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput
   fs.readFileSync(path.join(__dirname, "../config/", "nonCirculatingSupplyAddressesConfig.json"), "utf-8")
 );
 
-async function getNonCirculatingSupplyAddressConfigurations(): Promise<AddressConfiguration[]> {
+async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress: string, chainId: number): Promise<AddressConfiguration[]> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
   const data: GatewayCabnApiResponse = await response.json();

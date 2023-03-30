@@ -17,25 +17,25 @@ const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const web3_1 = __importDefault(require("web3"));
 const config_1 = require("./config");
 const utils_1 = require("./utils");
-function getNonCirculatingSupplyBalances() {
+function getNonCirculatingSupplyBalances(tokenContractAddress, chainId) {
     return __awaiter(this, void 0, void 0, function* () {
         const nonCirculatingSupplyBalances = [];
         let total = new bignumber_js_1.default(0);
-        for (const { chainId, address, jsonRpcUrl, tokenContractAddress, name } of yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)()) {
+        for (const { chainId: currentChainId, address, jsonRpcUrl, tokenContractAddress: currentTokenContractAddress, name, } of yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, chainId)) {
             let balance;
-            if (chainId === "bnbBeaconChain") {
-                balance = new bignumber_js_1.default(yield (0, utils_1.getBep2TokenBalance)(address, jsonRpcUrl, tokenContractAddress));
+            if (currentChainId === "bnbBeaconChain") {
+                balance = new bignumber_js_1.default(yield (0, utils_1.getBep2TokenBalance)(address, jsonRpcUrl, currentTokenContractAddress));
             }
             else {
-                balance = new bignumber_js_1.default(yield (0, utils_1.getErc20TokenBalance)(address, jsonRpcUrl, tokenContractAddress));
+                balance = new bignumber_js_1.default(yield (0, utils_1.getErc20TokenBalance)(address, jsonRpcUrl, currentTokenContractAddress));
             }
             total = total.plus(balance);
             nonCirculatingSupplyBalances.push({
-                chainId,
+                chainId: currentChainId,
                 address,
-                tokenContractAddress,
+                tokenContractAddress: currentTokenContractAddress,
                 name,
-                balance: balance
+                balance: balance,
             });
         }
         return {
