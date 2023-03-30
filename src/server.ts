@@ -3,7 +3,7 @@ import express from "express";
 import bodyParser from 'body-parser';
 import BigNumber from "bignumber.js";
 import { getTotalSupplyAcrossNetworks, getNonCirculatingSupplyBalances } from "./getSupplyAcrossNetworks";
-import { getNetworkConfigurations, nonCirculatingSupplyAddressesConfig } from "./config";
+import { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations } from "./config";
 import { NonCirculatingSupplyBalance } from './types';
 
 
@@ -34,8 +34,9 @@ app.get('/totalSupply', async (req, res) => {
   }
 });
 
-app.get("/nonCirculatingSupplyAddresses", (req, res) => {
-  res.json(nonCirculatingSupplyAddressesConfig);
+app.get("/nonCirculatingSupplyAddresses", async (req, res) => {
+  const nonCirculatingSupplyAddressConfigurations = await getNonCirculatingSupplyAddressConfigurations();
+  res.json(nonCirculatingSupplyAddressConfigurations);
 });
 
 app.get('/nonCirculatingSupplyBalancesByAddress', async (req, res) => {
@@ -51,7 +52,7 @@ app.get('/nonCirculatingSupplyBalancesByAddress', async (req, res) => {
 app.get('/nonCirculatingSupplyBalance', async (req, res) => {
   try {
     const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances();
-    const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.Balance), new BigNumber(0));
+    const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.balance), new BigNumber(0));
     res.send(totalBalance.toString());
   } catch (error) {
     console.error('Error fetching non-circulating supply balances:', error);
@@ -66,7 +67,7 @@ app.get('/circulatingSupplyBalance', async (req, res) => {
     const totalSupply = new BigNumber(totalSupplyData.total);
 
     const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances();
-    const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.Balance), new BigNumber(0));
+    const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.balance), new BigNumber(0));
 
     const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
     res.send(circulatingSupply.toString());
