@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations, ChainIdToNetwork, GatewayCabnApiResponse } from "./types";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
-import erc20Abi from "./erc20Abi.json"; // Make sure you have the ERC20 ABI JSON file in your project
+import erc20Abi from "./erc20Abi.json";
 import fs from "fs";
 import path from "path";
 
