@@ -15,7 +15,14 @@ app.use(bodyParser.json());
 
 app.get("/totalSupplyAcrossNetworks", async (req, res) => {
   try {
-    const networks = await getNetworkConfigurations();
+    const { tokenContractAddress, chainId } = req.query;
+    
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+      res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+      return;
+    }
+
+    const networks = await getNetworkConfigurations(tokenContractAddress, Number(chainId));
     const totalSupplyData = await getTotalSupplyAcrossNetworks(networks);
     res.json(totalSupplyData);
   } catch (error) {
@@ -25,7 +32,14 @@ app.get("/totalSupplyAcrossNetworks", async (req, res) => {
 
 app.get('/totalSupply', async (req, res) => {
   try {
-    const networks = await getNetworkConfigurations();
+    const { tokenContractAddress, chainId } = req.query;
+    
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+      res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+      return;
+    }
+
+    const networks = await getNetworkConfigurations(tokenContractAddress, Number(chainId));
     const totalSupplyData = await getTotalSupplyAcrossNetworks(networks);
     res.send(totalSupplyData.total);
   } catch (error) {
@@ -35,13 +49,25 @@ app.get('/totalSupply', async (req, res) => {
 });
 
 app.get("/nonCirculatingSupplyAddresses", async (req, res) => {
-  const nonCirculatingSupplyAddressConfigurations = await getNonCirculatingSupplyAddressConfigurations();
+  const { tokenContractAddress, chainId } = req.query;
+    
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+      res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+      return;
+    }
+  const nonCirculatingSupplyAddressConfigurations = await getNonCirculatingSupplyAddressConfigurations(tokenContractAddress, Number(chainId));
   res.json(nonCirculatingSupplyAddressConfigurations);
 });
 
 app.get('/nonCirculatingSupplyBalancesByAddress', async (req, res) => {
   try {
-    const nonCirculatingSupplyBalances = await getNonCirculatingSupplyBalances();
+    const { tokenContractAddress, chainId } = req.query;
+    
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+      res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+      return;
+    }
+    const nonCirculatingSupplyBalances = await getNonCirculatingSupplyBalances(tokenContractAddress, Number(chainId));
     res.json(nonCirculatingSupplyBalances);
   } catch (error) {
     console.error('Error fetching non-circulating supply balances:', error);
@@ -51,7 +77,13 @@ app.get('/nonCirculatingSupplyBalancesByAddress', async (req, res) => {
 
 app.get('/nonCirculatingSupplyBalance', async (req, res) => {
   try {
-    const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances();
+    const { tokenContractAddress, chainId } = req.query;
+    
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+      res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+      return;
+    }
+    const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances(tokenContractAddress, Number(chainId));
     const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.balance), new BigNumber(0));
     res.send(totalBalance.toString());
   } catch (error) {
@@ -62,11 +94,18 @@ app.get('/nonCirculatingSupplyBalance', async (req, res) => {
 
 app.get('/circulatingSupplyBalance', async (req, res) => {
   try {
-    const networks = await getNetworkConfigurations();
+    const { tokenContractAddress, chainId } = req.query;
+    
+    if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
+      res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
+      return;
+    }
+
+    const networks = await getNetworkConfigurations(tokenContractAddress, Number(chainId));
     const totalSupplyData = await getTotalSupplyAcrossNetworks(networks);
     const totalSupply = new BigNumber(totalSupplyData.total);
 
-    const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances();
+    const { balances }: { balances: NonCirculatingSupplyBalance[] } = await getNonCirculatingSupplyBalances(tokenContractAddress, Number(chainId));
     const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.balance), new BigNumber(0));
 
     const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
@@ -76,10 +115,6 @@ app.get('/circulatingSupplyBalance', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch circulating supply balance' });
   }
 });
-
-
-
-
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
