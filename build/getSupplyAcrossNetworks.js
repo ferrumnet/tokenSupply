@@ -17,13 +17,6 @@ const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const web3_1 = __importDefault(require("web3"));
 const config_1 = require("./config");
 const utils_1 = require("./utils");
-// export interface NonCirculatingSupplyBalance {
-//   chainId: string;
-//   address: string;
-//   tokenContractAddress: string;
-//   name: string;
-//   balance: BigNumber;
-// }
 function getNonCirculatingSupplyBalances() {
     return __awaiter(this, void 0, void 0, function* () {
         const nonCirculatingSupplyBalances = [];

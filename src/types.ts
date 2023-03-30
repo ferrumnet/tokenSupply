@@ -33,4 +33,22 @@ export interface NonCirculatingSupplyBalance {
     jsonRpcUrl: string;
     chainId: string;
   }
+
+  export interface ChainIdToNetwork {
+    [key: string]: {
+      jsonRpcUrl: string;
+      name: string;
+    };
+  }
+
+  export interface GatewayCabnApiResponse {
+    body: {
+      currencyAddressesByNetworks: {
+        network: {
+          chainId: string;
+        };
+        tokenContractAddress: string;
+      }[];
+    };
+  }
   

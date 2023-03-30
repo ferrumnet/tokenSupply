@@ -12,9 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNonCirculatingSupplyAddressConfigurations = exports.getNetworkConfigurations = exports.chainIdToNetworkMap = void 0;
+exports.getNonCirculatingSupplyAddressConfigurations = exports.getNetworkConfigurations = exports.nonCirculatingSupplyAddressesConfigInput = exports.chainIdToNetworkMap = void 0;
 // src/config.ts
 const node_fetch_1 = __importDefault(require("node-fetch"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
 const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
 const chainId = 56;
@@ -60,65 +62,66 @@ function getNetworkConfigurations() {
     });
 }
 exports.getNetworkConfigurations = getNetworkConfigurations;
-const nonCirculatingSupplyAddressesConfigInput = [
-    {
-        name: "Deployer",
-        address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-        chainId: "1"
-    },
-    {
-        name: "Treasury",
-        address: "0x517873ca1edaaa0f6403a0dab2cb0162433de9d1",
-        chainId: "56"
-    },
-    {
-        name: "Deployer",
-        address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-        chainId: "137"
-    },
-    {
-        name: "Deployer",
-        address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-        chainId: "43114"
-    },
-    // {
-    //   name: "Deployer",
-    //   address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
-    //   chainId: "bnbBeaconChain"
-    // },
-    {
-        name: "Treasury",
-        address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
-        chainId: "42161"
-    },
-    {
-        name: "Bridge Pool",
-        address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-        chainId: "1"
-    },
-    {
-        name: "Bridge Pool",
-        address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-        chainId: "56"
-    },
-    {
-        name: "Bridge Pool",
-        address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-        chainId: "137"
-    },
-    {
-        name: "Bridge Pool",
-        address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-        chainId: "43114"
-    }
-];
+exports.nonCirculatingSupplyAddressesConfigInput = JSON.parse(fs_1.default.readFileSync(path_1.default.join(__dirname, "../config/", "nonCirculatingSupplyAddressesConfig.json"), "utf-8"));
+// const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = [
+//   {
+//     name: "Deployer",
+//     address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+//     chainId: "1"
+//   },
+//   {
+//     name: "Treasury",
+//     address: "0x517873ca1edaaa0f6403a0dab2cb0162433de9d1",
+//     chainId: "56"
+//   },
+//   {
+//     name: "Deployer",
+//     address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+//     chainId: "137"
+//   },
+//   {
+//     name: "Deployer",
+//     address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+//     chainId: "43114"
+//   },
+//   // {
+//   //   name: "Deployer",
+//   //   address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
+//   //   chainId: "bnbBeaconChain"
+//   // },
+//   {
+//     name: "Treasury",
+//     address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
+//     chainId: "42161"
+//   },
+//   {
+//     name: "Bridge Pool",
+//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+//     chainId: "1"
+//   },
+//   {
+//     name: "Bridge Pool",
+//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+//     chainId: "56"
+//   },
+//   {
+//     name: "Bridge Pool",
+//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+//     chainId: "137"
+//   },
+//   {
+//     name: "Bridge Pool",
+//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+//     chainId: "43114"
+//   }
+// ];
 function getNonCirculatingSupplyAddressConfigurations() {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
         const response = yield (0, node_fetch_1.default)(url);
         const data = yield response.json();
         const nonCirculatingSupplyAddresses = [];
-        for (const item of nonCirculatingSupplyAddressesConfigInput) {
+        for (const item of exports.nonCirculatingSupplyAddressesConfigInput) {
             const network = exports.chainIdToNetworkMap[item.chainId];
             let networkItemFromGatewayConfig = data.body.currencyAddressesByNetworks.find(i => i.network.chainId === item.chainId);
             nonCirculatingSupplyAddresses.push({
