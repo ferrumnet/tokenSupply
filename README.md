@@ -1,5 +1,5 @@
-TokenSupply App
-===============
+TokenSupply App (API)
+=====================
 
 The TokenSupply App is a simple and efficient solution for calculating the total, circulating, and non-circulating supply of a token across multiple blockchain networks. It provides a set of RESTful API endpoints for querying the token supply data and offers easy integration with other applications or services.
 
