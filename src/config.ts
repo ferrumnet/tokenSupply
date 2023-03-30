@@ -60,59 +60,6 @@ export const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput
   fs.readFileSync(path.join(__dirname, "../config/", "nonCirculatingSupplyAddressesConfig.json"), "utf-8")
 );
 
-// const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = [
-//   {
-//     name: "Deployer",
-//     address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-//     chainId: "1"
-//   },
-//   {
-//     name: "Treasury",
-//     address: "0x517873ca1edaaa0f6403a0dab2cb0162433de9d1",
-//     chainId: "56"
-//   },
-//   {
-//     name: "Deployer",
-//     address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-//     chainId: "137"
-//   },
-//   {
-//     name: "Deployer",
-//     address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-//     chainId: "43114"
-//   },
-//   // {
-//   //   name: "Deployer",
-//   //   address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
-//   //   chainId: "bnbBeaconChain"
-//   // },
-//   {
-//     name: "Treasury",
-//     address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
-//     chainId: "42161"
-//   },
-//   {
-//     name: "Bridge Pool",
-//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-//     chainId: "1"
-//   },
-//   {
-//     name: "Bridge Pool",
-//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-//     chainId: "56"
-//   },
-//   {
-//     name: "Bridge Pool",
-//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-//     chainId: "137"
-//   },
-//   {
-//     name: "Bridge Pool",
-//     address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-//     chainId: "43114"
-//   }
-// ];
-
 async function getNonCirculatingSupplyAddressConfigurations(): Promise<AddressConfiguration[]> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
