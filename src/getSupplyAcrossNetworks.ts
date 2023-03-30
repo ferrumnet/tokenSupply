@@ -9,14 +9,6 @@ import { NonCirculatingSupplyBalance } from './types';
 import { getBep2TokenBalance, getErc20TokenBalance } from './utils';
 import { NetworkConfigurations } from "./types";
 
-// export interface NonCirculatingSupplyBalance {
-//   chainId: string;
-//   address: string;
-//   tokenContractAddress: string;
-//   name: string;
-//   balance: BigNumber;
-// }
-
 export async function getNonCirculatingSupplyBalances(): Promise<{balances: NonCirculatingSupplyBalance[], total: BigNumber}> {
   const nonCirculatingSupplyBalances: NonCirculatingSupplyBalance[] = [];
   let total = new BigNumber(0);  
