@@ -42,9 +42,10 @@ app.get('/totalSupply', (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(500).send('Error getting total supply');
     }
 }));
-app.get("/nonCirculatingSupplyAddresses", (req, res) => {
-    res.json(config_1.nonCirculatingSupplyAddressesConfig);
-});
+app.get("/nonCirculatingSupplyAddresses", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const nonCirculatingSupplyAddressConfigurations = yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)();
+    res.json(nonCirculatingSupplyAddressConfigurations);
+}));
 app.get('/nonCirculatingSupplyBalancesByAddress', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const nonCirculatingSupplyBalances = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
@@ -58,7 +59,7 @@ app.get('/nonCirculatingSupplyBalancesByAddress', (req, res) => __awaiter(void 0
 app.get('/nonCirculatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
-        const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.Balance), new bignumber_js_1.default(0));
+        const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.balance), new bignumber_js_1.default(0));
         res.send(totalBalance.toString());
     }
     catch (error) {
@@ -72,7 +73,7 @@ app.get('/circulatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, voi
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         const totalSupply = new bignumber_js_1.default(totalSupplyData.total);
         const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)();
-        const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.Balance), new bignumber_js_1.default(0));
+        const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.balance), new bignumber_js_1.default(0));
         const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
         res.send(circulatingSupply.toString());
     }

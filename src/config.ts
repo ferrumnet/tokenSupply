@@ -1,5 +1,6 @@
 // src/config.ts
-import { NetworkConfigurations } from "./getSupplyAcrossNetworks";
+import express from "express";
+import { NetworkConfigurations } from "./types";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import erc20Abi from "./erc20Abi.json"; // Make sure you have the ERC20 ABI JSON file in your project
@@ -63,95 +64,105 @@ async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
     if (network) {
       networks[network.name] = {
         jsonRpcUrl: network.jsonRpcUrl,
-        tokenContractAddress: item.tokenContractAddress
+        tokenContractAddress: item.tokenContractAddress,
+        chainId: item.network.chainId
       };
     }
   }
-
   return networks;
 }
 
-interface AddressConfiguration {
-  Name: string;
-  Address: string;
-  TokenContractAddress: string;
-  JsonRpcUrl: string;
-  ChainId: string;
+
+interface AddressConfigurationInput {
+  name: string;
+  address: string;
+  chainId: string;
 }
 
-const nonCirculatingSupplyAddressesConfig: AddressConfiguration[] = [
+const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = [
   {
-    Name: "Deployer",
-    Address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    TokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    JsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
-    ChainId: "1"
+    name: "Deployer",
+    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+    chainId: "1"
   },
   {
-    Name: "Treasury",
-    Address: "0x517873ca1edaaa0f6403a0dab2cb0162433de9d1",
-    TokenContractAddress: "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc",
-    JsonRpcUrl: "https://nd-605-906-592.p2pify.com/df9065025f5e18317e708040b1f2ab13",
-    ChainId: "56"
+    name: "Treasury",
+    address: "0x517873ca1edaaa0f6403a0dab2cb0162433de9d1",
+    chainId: "56"
   },
   {
-    Name: "Deployer",
-    Address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    TokenContractAddress: "0xd99bafe5031cc8b345cb2e8c80135991f12d7130",
-    JsonRpcUrl: "https://nd-662-671-431.p2pify.com/72aea5a70bbd5482f9a498540072b1e1",
-    ChainId: "137"
+    name: "Deployer",
+    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+    chainId: "137"
   },
   {
-    Name: "Deployer",
-    Address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    TokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    JsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
-    ChainId: "43114"
+    name: "Deployer",
+    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+    chainId: "43114"
   },
   // {
-  //   Name: "Deployer",
-  //   Address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
-  //   TokenContractAddress: "FRM-DE7",
-  //   JsonRpcUrl: "https://dex.binance.org",
-  //   ChainId: "bnbBeaconChain"
+  //   name: "Deployer",
+  //   address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
+  //   chainId: "bnbBeaconChain"
   // },
   {
-    Name: "Treasury",
-    Address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
-    TokenContractAddress: "0x9f6abbf0ba6b5bfa27f4deb6597cc6ec20573fda",
-    JsonRpcUrl: "https://nd-674-145-610.p2pify.com/bc9acaa6f1386224186fb1e794c40c14",
-    ChainId: "42161"
+    name: "Treasury",
+    address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
+    chainId: "42161"
   },
   {
-    Name: "Bridge Pool",
-    Address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    TokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    JsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
-    ChainId: "1"
+    name: "Bridge Pool",
+    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+    chainId: "1"
   },
   {
-    Name: "Bridge Pool",
-    Address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    TokenContractAddress: "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc",
-    JsonRpcUrl: "https://nd-605-906-592.p2pify.com/df9065025f5e18317e708040b1f2ab13",
-    ChainId: "56"
+    name: "Bridge Pool",
+    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+    chainId: "56"
   },
   {
-    Name: "Bridge Pool",
-    Address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    TokenContractAddress: "0xd99bafe5031cc8b345cb2e8c80135991f12d7130",
-    JsonRpcUrl: "https://nd-662-671-431.p2pify.com/72aea5a70bbd5482f9a498540072b1e1",
-    ChainId: "137"
+    name: "Bridge Pool",
+    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+    chainId: "137"
   },
   {
-    Name: "Bridge Pool",
-    Address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    TokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    JsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
-    ChainId: "43114"
+    name: "Bridge Pool",
+    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
+    chainId: "43114"
   }
 ];
-    
-    
 
-export { getNetworkConfigurations, nonCirculatingSupplyAddressesConfig };
+async function getNonCirculatingSupplyAddressConfigurations(): Promise<AddressConfiguration[]> {
+  const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
+  const response = await fetch(url);
+  const data: ApiResponse = await response.json();
+
+  const nonCirculatingSupplyAddresses: AddressConfiguration[] = [];
+
+  for (const item of nonCirculatingSupplyAddressesConfigInput) {
+    const network = chainIdToNetworkMap[item.chainId]
+    let networkItemFromGatewayConfig = data.body.currencyAddressesByNetworks.find(i => i.network.chainId === item.chainId);
+      nonCirculatingSupplyAddresses.push(
+        {
+          name: item.name,
+          address: item.address,
+          tokenContractAddress: networkItemFromGatewayConfig?.tokenContractAddress as string,
+          jsonRpcUrl: network.jsonRpcUrl,
+          chainId: item.chainId
+        }
+      )
+  }
+
+  return nonCirculatingSupplyAddresses;
+}
+
+interface AddressConfiguration {
+  name: string;
+  address: string;
+  tokenContractAddress: string;
+  jsonRpcUrl: string;
+  chainId: string;
+}
+
+
+export { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations };

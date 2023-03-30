@@ -83,11 +83,11 @@ export const getNetworkConfigurations = async () => {
 
 export const nonCirculatingSupplyAddressesConfig = [
   {
-    Name: "Deployer",
-    Address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    TokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
-    JsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
-    ChainId: "1"
+    name: "Deployer",
+    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
+    tokenContractAddress: "0xe5caef4af8780e59df925470b050fb23c43ca68c",
+    jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
+    chainId: "1"
   },
   // Add more addresses here...
 ];
