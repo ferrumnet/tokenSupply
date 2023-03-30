@@ -8,8 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNonCirculatingSupplyAddressConfigurations = exports.getNetworkConfigurations = exports.chainIdToNetworkMap = void 0;
+// src/config.ts
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
 const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
 const chainId = 56;
@@ -38,7 +43,7 @@ exports.chainIdToNetworkMap = {
 function getNetworkConfigurations() {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
-        const response = yield fetch(url);
+        const response = yield (0, node_fetch_1.default)(url);
         const data = yield response.json();
         const networks = {};
         for (const item of data.body.currencyAddressesByNetworks) {
@@ -110,7 +115,7 @@ const nonCirculatingSupplyAddressesConfigInput = [
 function getNonCirculatingSupplyAddressConfigurations() {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
-        const response = yield fetch(url);
+        const response = yield (0, node_fetch_1.default)(url);
         const data = yield response.json();
         const nonCirculatingSupplyAddresses = [];
         for (const item of nonCirculatingSupplyAddressesConfigInput) {

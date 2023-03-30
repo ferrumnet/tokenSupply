@@ -19,4 +19,18 @@ export interface NonCirculatingSupplyBalance {
   export type NetworkConfigurations = {
     [network: string]: NetworkConfiguration;
   };
+
+  export interface AddressConfigurationInput {
+    name: string;
+    address: string;
+    chainId: string;
+  }
+
+  export interface AddressConfiguration {
+    name: string;
+    address: string;
+    tokenContractAddress: string;
+    jsonRpcUrl: string;
+    chainId: string;
+  }
   

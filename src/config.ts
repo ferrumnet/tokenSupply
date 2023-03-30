@@ -1,6 +1,6 @@
 // src/config.ts
-import express from "express";
-import { NetworkConfigurations } from "./types";
+import fetch from "node-fetch";
+import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations } from "./types";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import erc20Abi from "./erc20Abi.json"; // Make sure you have the ERC20 ABI JSON file in your project
@@ -70,13 +70,6 @@ async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
     }
   }
   return networks;
-}
-
-
-interface AddressConfigurationInput {
-  name: string;
-  address: string;
-  chainId: string;
 }
 
 const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = [
@@ -154,14 +147,6 @@ async function getNonCirculatingSupplyAddressConfigurations(): Promise<AddressCo
   }
 
   return nonCirculatingSupplyAddresses;
-}
-
-interface AddressConfiguration {
-  name: string;
-  address: string;
-  tokenContractAddress: string;
-  jsonRpcUrl: string;
-  chainId: string;
 }
 
 
