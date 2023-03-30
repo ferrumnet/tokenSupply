@@ -1,6 +1,6 @@
 // src/config.ts
 import fetch from "node-fetch";
-import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations } from "./types";
+import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations, ChainIdToNetwork, GatewayCabnApiResponse } from "./types";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import erc20Abi from "./erc20Abi.json"; // Make sure you have the ERC20 ABI JSON file in your project
@@ -10,13 +10,6 @@ const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/curren
 
 const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
 const chainId = 56;
-
-interface ChainIdToNetwork {
-  [key: string]: {
-    jsonRpcUrl: string;
-    name: string;
-  };
-}
 
 export const chainIdToNetworkMap: ChainIdToNetwork = {
   "1": {
@@ -41,21 +34,10 @@ export const chainIdToNetworkMap: ChainIdToNetwork = {
   }
 };
 
-interface ApiResponse {
-  body: {
-    currencyAddressesByNetworks: {
-      network: {
-        chainId: string;
-      };
-      tokenContractAddress: string;
-    }[];
-  };
-}
-
 async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
-  const data: ApiResponse = await response.json();
+  const data: GatewayCabnApiResponse = await response.json();
 
   const networks: NetworkConfigurations = {};
 
@@ -128,7 +110,7 @@ const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = [
 async function getNonCirculatingSupplyAddressConfigurations(): Promise<AddressConfiguration[]> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
-  const data: ApiResponse = await response.json();
+  const data: GatewayCabnApiResponse = await response.json();
 
   const nonCirculatingSupplyAddresses: AddressConfiguration[] = [];
 
