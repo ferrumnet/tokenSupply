@@ -1,22 +1,14 @@
 // src/config.ts
 import fetch from "node-fetch";
-import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations } from "./types";
+import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations, ChainIdToNetwork, GatewayCabnApiResponse } from "./types";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
-import erc20Abi from "./erc20Abi.json"; // Make sure you have the ERC20 ABI JSON file in your project
+import erc20Abi from "./erc20Abi.json";
+import fs from "fs";
+import path from "path";
 
 
 const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
-
-const tokenContractAddress = "0xa719b8ab7ea7af0ddb4358719a34631bb79d15dc";
-const chainId = 56;
-
-interface ChainIdToNetwork {
-  [key: string]: {
-    jsonRpcUrl: string;
-    name: string;
-  };
-}
 
 export const chainIdToNetworkMap: ChainIdToNetwork = {
   "1": {
@@ -41,21 +33,10 @@ export const chainIdToNetworkMap: ChainIdToNetwork = {
   }
 };
 
-interface ApiResponse {
-  body: {
-    currencyAddressesByNetworks: {
-      network: {
-        chainId: string;
-      };
-      tokenContractAddress: string;
-    }[];
-  };
-}
-
-async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
+async function getNetworkConfigurations(tokenContractAddress: string, chainId: number): Promise<NetworkConfigurations> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
-  const data: ApiResponse = await response.json();
+  const data: GatewayCabnApiResponse = await response.json();
 
   const networks: NetworkConfigurations = {};
 
@@ -72,63 +53,14 @@ async function getNetworkConfigurations(): Promise<NetworkConfigurations> {
   return networks;
 }
 
-const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = [
-  {
-    name: "Deployer",
-    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    chainId: "1"
-  },
-  {
-    name: "Treasury",
-    address: "0x517873ca1edaaa0f6403a0dab2cb0162433de9d1",
-    chainId: "56"
-  },
-  {
-    name: "Deployer",
-    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    chainId: "137"
-  },
-  {
-    name: "Deployer",
-    address: "0xc2fdcb728170192c72ada2c08957f2e9390076b7",
-    chainId: "43114"
-  },
-  // {
-  //   name: "Deployer",
-  //   address: "bnb1um8ntkgwle8yrdk0yn5hwdf7hckjpyjjg29k2p",
-  //   chainId: "bnbBeaconChain"
-  // },
-  {
-    name: "Treasury",
-    address: "0xe42b80dA58ccEAbe0A6ECe8e3311AE939Ef6b96c",
-    chainId: "42161"
-  },
-  {
-    name: "Bridge Pool",
-    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    chainId: "1"
-  },
-  {
-    name: "Bridge Pool",
-    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    chainId: "56"
-  },
-  {
-    name: "Bridge Pool",
-    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    chainId: "137"
-  },
-  {
-    name: "Bridge Pool",
-    address: "0x8e01cc26d6dd73581347c4370573ce9e59e74802",
-    chainId: "43114"
-  }
-];
+export const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../config/", "nonCirculatingSupplyAddressesConfig.json"), "utf-8")
+);
 
-async function getNonCirculatingSupplyAddressConfigurations(): Promise<AddressConfiguration[]> {
+async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress: string, chainId: number): Promise<AddressConfiguration[]> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
-  const data: ApiResponse = await response.json();
+  const data: GatewayCabnApiResponse = await response.json();
 
   const nonCirculatingSupplyAddresses: AddressConfiguration[] = [];
 
