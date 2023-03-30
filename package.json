@@ -33,6 +33,7 @@
     "@types/axios": "^0.14.0",
     "@types/bignumber.js": "^5.0.0",
     "@types/node": "^18.15.5",
+    "@types/node-fetch": "^2.6.3",
     "@types/web3": "^1.2.2",
     "nodemon": "^2.0.22",
     "ts-node": "^10.9.1",

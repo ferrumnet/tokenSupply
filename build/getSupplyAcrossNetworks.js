@@ -18,31 +18,31 @@ const web3_1 = __importDefault(require("web3"));
 const config_1 = require("./config");
 const utils_1 = require("./utils");
 // export interface NonCirculatingSupplyBalance {
-//   ChainId: string;
-//   Address: string;
-//   TokenContractAddress: string;
-//   Name: string;
+//   chainId: string;
+//   address: string;
+//   tokenContractAddress: string;
+//   name: string;
 //   balance: BigNumber;
 // }
 function getNonCirculatingSupplyBalances() {
     return __awaiter(this, void 0, void 0, function* () {
         const nonCirculatingSupplyBalances = [];
         let total = new bignumber_js_1.default(0);
-        for (const { ChainId, Address, JsonRpcUrl, TokenContractAddress, Name } of config_1.nonCirculatingSupplyAddressesConfig) {
+        for (const { chainId, address, jsonRpcUrl, tokenContractAddress, name } of yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)()) {
             let balance;
-            if (ChainId === "bnbBeaconChain") {
-                balance = new bignumber_js_1.default(yield (0, utils_1.getBep2TokenBalance)(Address, JsonRpcUrl, TokenContractAddress));
+            if (chainId === "bnbBeaconChain") {
+                balance = new bignumber_js_1.default(yield (0, utils_1.getBep2TokenBalance)(address, jsonRpcUrl, tokenContractAddress));
             }
             else {
-                balance = new bignumber_js_1.default(yield (0, utils_1.getErc20TokenBalance)(Address, JsonRpcUrl, TokenContractAddress));
+                balance = new bignumber_js_1.default(yield (0, utils_1.getErc20TokenBalance)(address, jsonRpcUrl, tokenContractAddress));
             }
             total = total.plus(balance);
             nonCirculatingSupplyBalances.push({
-                ChainId,
-                Address,
-                TokenContractAddress,
-                Name,
-                Balance: balance
+                chainId,
+                address,
+                tokenContractAddress,
+                name,
+                balance: balance
             });
         }
         return {

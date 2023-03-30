@@ -4,36 +4,37 @@ import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import erc20Abi from "./erc20Abi.json";
 import axios, { AxiosResponse } from "axios";
-import { chainIdToNetworkMap, getNetworkConfigurations, nonCirculatingSupplyAddressesConfig } from "./config";
+import { chainIdToNetworkMap, getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations } from "./config";
 import { NonCirculatingSupplyBalance } from './types';
 import { getBep2TokenBalance, getErc20TokenBalance } from './utils';
+import { NetworkConfigurations } from "./types";
 
 // export interface NonCirculatingSupplyBalance {
-//   ChainId: string;
-//   Address: string;
-//   TokenContractAddress: string;
-//   Name: string;
+//   chainId: string;
+//   address: string;
+//   tokenContractAddress: string;
+//   name: string;
 //   balance: BigNumber;
 // }
 
 export async function getNonCirculatingSupplyBalances(): Promise<{balances: NonCirculatingSupplyBalance[], total: BigNumber}> {
   const nonCirculatingSupplyBalances: NonCirculatingSupplyBalance[] = [];
-  let total = new BigNumber(0);
+  let total = new BigNumber(0);  
 
-  for (const { ChainId, Address, JsonRpcUrl, TokenContractAddress, Name } of nonCirculatingSupplyAddressesConfig) {
+  for (const { chainId, address, jsonRpcUrl, tokenContractAddress, name } of await getNonCirculatingSupplyAddressConfigurations()) {
     let balance: BigNumber;
-    if (ChainId === "bnbBeaconChain") {
-      balance = new BigNumber(await getBep2TokenBalance(Address, JsonRpcUrl, TokenContractAddress));
+    if (chainId === "bnbBeaconChain") {
+      balance = new BigNumber(await getBep2TokenBalance(address, jsonRpcUrl, tokenContractAddress));
     } else {
-      balance = new BigNumber(await getErc20TokenBalance(Address, JsonRpcUrl, TokenContractAddress));
+      balance = new BigNumber(await getErc20TokenBalance(address, jsonRpcUrl, tokenContractAddress));
     }
     total = total.plus(balance);
     nonCirculatingSupplyBalances.push({
-      ChainId,
-      Address,
-      TokenContractAddress,
-      Name,
-      Balance: balance
+      chainId,
+      address,
+      tokenContractAddress,
+      name,
+      balance: balance
     });
   }
 
@@ -42,16 +43,6 @@ export async function getNonCirculatingSupplyBalances(): Promise<{balances: NonC
   total: total,
   };
   }
-
-
-interface NetworkConfiguration {
-  jsonRpcUrl: string;
-  tokenContractAddress: string;
-}
-
-export type NetworkConfigurations = {
-  [network: string]: NetworkConfiguration;
-};
 
 export const getTotalSupplyAcrossNetworks = async (
   networks: NetworkConfigurations
