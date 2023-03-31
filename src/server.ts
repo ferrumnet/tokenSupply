@@ -6,15 +6,17 @@ import { getTotalSupplyAcrossNetworks, getNonCirculatingSupplyBalances } from ".
 import { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations } from "./config";
 import { NonCirculatingSupplyBalance } from './types';
 import cacheMiddleware from './cacheMiddleware';
+import { config } from 'dotenv';
 
-
+config();
 
 const app = express();
 const port = process.env.PORT || 8080;
+const cacheDuration = Number(process.env.CACHE_DURATION || 300);
 
 app.use(bodyParser.json());
 
-app.get("/totalSupplyAcrossNetworks", cacheMiddleware(60), async (req, res) => {
+app.get("/totalSupplyAcrossNetworks", cacheMiddleware(cacheDuration), async (req, res) => {
   try {
     const { tokenContractAddress, chainId } = req.query;
     
@@ -31,7 +33,7 @@ app.get("/totalSupplyAcrossNetworks", cacheMiddleware(60), async (req, res) => {
   }
 });
 
-app.get('/totalSupply', cacheMiddleware(60), async (req, res) => {
+app.get('/totalSupply', cacheMiddleware(cacheDuration), async (req, res) => {
   try {
     const { tokenContractAddress, chainId } = req.query;
     
@@ -49,7 +51,7 @@ app.get('/totalSupply', cacheMiddleware(60), async (req, res) => {
   }
 });
 
-app.get("/nonCirculatingSupplyAddresses", cacheMiddleware(60), async (req, res) => {
+app.get("/nonCirculatingSupplyAddresses", cacheMiddleware(cacheDuration), async (req, res) => {
   const { tokenContractAddress, chainId } = req.query;
     
     if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
@@ -60,7 +62,7 @@ app.get("/nonCirculatingSupplyAddresses", cacheMiddleware(60), async (req, res) 
   res.json(nonCirculatingSupplyAddressConfigurations);
 });
 
-app.get('/nonCirculatingSupplyBalancesByAddress', cacheMiddleware(60), async (req, res) => {
+app.get('/nonCirculatingSupplyBalancesByAddress', cacheMiddleware(cacheDuration), async (req, res) => {
   try {
     const { tokenContractAddress, chainId } = req.query;
     
@@ -76,7 +78,7 @@ app.get('/nonCirculatingSupplyBalancesByAddress', cacheMiddleware(60), async (re
   }
 });
 
-app.get('/nonCirculatingSupplyBalance', cacheMiddleware(60), async (req, res) => {
+app.get('/nonCirculatingSupplyBalance', cacheMiddleware(cacheDuration), async (req, res) => {
   try {
     const { tokenContractAddress, chainId } = req.query;
     
@@ -93,7 +95,7 @@ app.get('/nonCirculatingSupplyBalance', cacheMiddleware(60), async (req, res) =>
   }
 });
 
-app.get('/circulatingSupplyBalance', cacheMiddleware(60), async (req, res) => {
+app.get('/circulatingSupplyBalance', cacheMiddleware(cacheDuration), async (req, res) => {
   try {
     const { tokenContractAddress, chainId } = req.query;
     
