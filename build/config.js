@@ -12,42 +12,51 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNonCirculatingSupplyAddressConfigurations = exports.getNetworkConfigurations = exports.nonCirculatingSupplyAddressesConfigInput = exports.chainIdToNetworkMap = void 0;
+exports.getNonCirculatingSupplyAddressConfigurations = exports.getNetworkConfigurations = exports.nonCirculatingSupplyAddressesConfigInput = void 0;
 // src/config.ts
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
-exports.chainIdToNetworkMap = {
-    "1": {
-        jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
-        name: "Ethereum"
-    },
-    "56": {
-        jsonRpcUrl: "https://nd-605-906-592.p2pify.com/df9065025f5e18317e708040b1f2ab13",
-        name: "BSC"
-    },
-    "137": {
-        jsonRpcUrl: "https://nd-662-671-431.p2pify.com/72aea5a70bbd5482f9a498540072b1e1",
-        name: "Polygon"
-    },
-    "42161": {
-        jsonRpcUrl: "https://nd-674-145-610.p2pify.com/bc9acaa6f1386224186fb1e794c40c14",
-        name: "Arbitrum One"
-    },
-    "43114": {
-        jsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
-        name: "Avalanche"
-    }
-};
+const mongodb_1 = require("mongodb");
+const dotenv_1 = require("dotenv");
+(0, dotenv_1.config)();
+const API_URL = process.env.API_URL;
+// const MONGODB_URI = "mongodb+srv://tokenSupply_app_dev_qa_uat:M4T9dEmF4hpDTt5f@ferrum-netwrok-dev-qa-u.kyjw1.mongodb.net/?retryWrites=true&w=majority";
+const DATABASE_NAME = "ferrum-network-dev";
+function getChainIdToNetworkMap() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const MONGODB_URI = process.env.MONGODB_URI;
+        if (!MONGODB_URI) {
+            throw new Error('MONGODB_URI is not defined in the environment variables');
+        }
+        const client = new mongodb_1.MongoClient(MONGODB_URI);
+        yield client.connect();
+        const database = client.db(DATABASE_NAME);
+        const chainIdToNetworkMapCollection = database.collection("chainIdToNetworkMap");
+        const result = yield chainIdToNetworkMapCollection.findOne({ appName: "tokenSupply" });
+        yield client.close();
+        if (!result) {
+            throw new Error("chainIdToNetworkMap not found in the database.");
+        }
+        const chainIdToNetworkMap = {};
+        for (const item of result.chainIdToNetworkMap) {
+            chainIdToNetworkMap[item.chainId] = {
+                jsonRpcUrl: item.jsonRpcUrl,
+                name: item.name,
+            };
+        }
+        return chainIdToNetworkMap;
+    });
+}
 function getNetworkConfigurations(tokenContractAddress, chainId) {
     return __awaiter(this, void 0, void 0, function* () {
         const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
         const response = yield (0, node_fetch_1.default)(url);
         const data = yield response.json();
         const networks = {};
+        const chainIdToNetworkMap = yield getChainIdToNetworkMap();
         for (const item of data.body.currencyAddressesByNetworks) {
-            const network = exports.chainIdToNetworkMap[item.network.chainId];
+            const network = chainIdToNetworkMap[item.network.chainId];
             if (network) {
                 networks[network.name] = {
                     jsonRpcUrl: network.jsonRpcUrl,
@@ -67,8 +76,9 @@ function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress, chai
         const response = yield (0, node_fetch_1.default)(url);
         const data = yield response.json();
         const nonCirculatingSupplyAddresses = [];
+        const chainIdToNetworkMap = yield getChainIdToNetworkMap();
         for (const item of exports.nonCirculatingSupplyAddressesConfigInput) {
-            const network = exports.chainIdToNetworkMap[item.chainId];
+            const network = chainIdToNetworkMap[item.chainId];
             let networkItemFromGatewayConfig = data.body.currencyAddressesByNetworks.find(i => i.network.chainId === item.chainId);
             nonCirculatingSupplyAddresses.push({
                 name: item.name,
