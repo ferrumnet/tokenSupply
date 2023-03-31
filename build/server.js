@@ -18,10 +18,28 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const getSupplyAcrossNetworks_1 = require("./getSupplyAcrossNetworks");
 const config_1 = require("./config");
+const cacheMiddleware_1 = __importDefault(require("./cacheMiddleware"));
 const app = (0, express_1.default)();
 const port = process.env.PORT || 8080;
+// const cache = new NodeCache({ stdTTL: 60 }); // 60 seconds TTL
 app.use(body_parser_1.default.json());
-app.get("/totalSupplyAcrossNetworks", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// const cacheMiddleware = (duration: number) => {
+//   return (req: Request, res: Response, next: NextFunction) => {
+//     const key = req.originalUrl;
+//     const cachedResponse = cache.get(key);
+//     if (cachedResponse) {
+//       res.send(cachedResponse);
+//     } else {
+//       const originalSend = res.send.bind(res);
+//       res.send = ((body: any) => {
+//         cache.set(key, body, duration);
+//         originalSend(body);
+//       }) as Response['send'];
+//       next();
+//     }
+//   };
+// }
+app.get("/totalSupplyAcrossNetworks", (0, cacheMiddleware_1.default)(60), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { tokenContractAddress, chainId } = req.query;
         if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
@@ -36,7 +54,7 @@ app.get("/totalSupplyAcrossNetworks", (req, res) => __awaiter(void 0, void 0, vo
         res.status(500).json({ error: 'An error occurred while fetching the total supply.' });
     }
 }));
-app.get('/totalSupply', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/totalSupply', (0, cacheMiddleware_1.default)(60), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { tokenContractAddress, chainId } = req.query;
         if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
@@ -52,7 +70,7 @@ app.get('/totalSupply', (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(500).send('Error getting total supply');
     }
 }));
-app.get("/nonCirculatingSupplyAddresses", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/nonCirculatingSupplyAddresses", (0, cacheMiddleware_1.default)(60), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { tokenContractAddress, chainId } = req.query;
     if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
         res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
@@ -61,7 +79,7 @@ app.get("/nonCirculatingSupplyAddresses", (req, res) => __awaiter(void 0, void 0
     const nonCirculatingSupplyAddressConfigurations = yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, Number(chainId));
     res.json(nonCirculatingSupplyAddressConfigurations);
 }));
-app.get('/nonCirculatingSupplyBalancesByAddress', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/nonCirculatingSupplyBalancesByAddress', (0, cacheMiddleware_1.default)(60), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { tokenContractAddress, chainId } = req.query;
         if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
@@ -76,7 +94,7 @@ app.get('/nonCirculatingSupplyBalancesByAddress', (req, res) => __awaiter(void 0
         res.status(500).json({ error: 'Failed to fetch non-circulating supply balances' });
     }
 }));
-app.get('/nonCirculatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/nonCirculatingSupplyBalance', (0, cacheMiddleware_1.default)(60), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { tokenContractAddress, chainId } = req.query;
         if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
@@ -92,7 +110,7 @@ app.get('/nonCirculatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, 
         res.status(500).json({ error: 'Failed to fetch non-circulating supply balances' });
     }
 }));
-app.get('/circulatingSupplyBalance', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get('/circulatingSupplyBalance', (0, cacheMiddleware_1.default)(60), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { tokenContractAddress, chainId } = req.query;
         if (typeof tokenContractAddress !== 'string' || typeof chainId !== 'string') {
