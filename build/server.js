@@ -23,7 +23,7 @@ const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 8080;
-const cacheDuration = Number(process.env.CACHE_DURATION);
+const cacheDuration = Number(process.env.CACHE_DURATION || 300);
 app.use(body_parser_1.default.json());
 app.get("/totalSupplyAcrossNetworks", (0, cacheMiddleware_1.default)(cacheDuration), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
