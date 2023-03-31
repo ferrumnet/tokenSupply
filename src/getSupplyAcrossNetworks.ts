@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import erc20Abi from "./erc20Abi.json";
 import axios, { AxiosResponse } from "axios";
-import { chainIdToNetworkMap, getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations } from "./config";
+import {getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations } from "./config";
 import { NonCirculatingSupplyBalance } from './types';
 import { getBep2TokenBalance, getErc20TokenBalance } from './utils';
 import { NetworkConfigurations } from "./types";

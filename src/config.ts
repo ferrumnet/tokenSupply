@@ -6,32 +6,47 @@ import { AbiItem } from "web3-utils";
 import erc20Abi from "./erc20Abi.json";
 import fs from "fs";
 import path from "path";
+import { MongoClient, ObjectId } from "mongodb";
+import { config } from 'dotenv';
+config();
 
 
-const API_URL = 'https://api-leaderboard.dev.svcs.ferrumnetwork.io/api/v1/currencies/token/data';
 
-export const chainIdToNetworkMap: ChainIdToNetwork = {
-  "1": {
-    jsonRpcUrl: "https://nd-770-685-838.p2pify.com/e30d3ea257d1588823179ce4d5811a61",
-    name: "Ethereum"
-  },
-  "56": {
-    jsonRpcUrl: "https://nd-605-906-592.p2pify.com/df9065025f5e18317e708040b1f2ab13",
-    name: "BSC"
-  },
-  "137": {
-    jsonRpcUrl: "https://nd-662-671-431.p2pify.com/72aea5a70bbd5482f9a498540072b1e1",
-    name: "Polygon"
-  },
-  "42161": {
-    jsonRpcUrl: "https://nd-674-145-610.p2pify.com/bc9acaa6f1386224186fb1e794c40c14",
-    name: "Arbitrum One"
-  },
-  "43114": {
-    jsonRpcUrl: "https://nd-900-134-973.p2pify.com/0a4e07e77ebc245f0bf7839745b4803b/ext/bc/C/rpc",
-    name: "Avalanche"
+const API_URL = process.env.API_URL;
+
+
+// const MONGODB_URI = "mongodb+srv://tokenSupply_app_dev_qa_uat:M4T9dEmF4hpDTt5f@ferrum-netwrok-dev-qa-u.kyjw1.mongodb.net/?retryWrites=true&w=majority";
+const DATABASE_NAME = "ferrum-network-dev";
+
+async function getChainIdToNetworkMap(): Promise<ChainIdToNetwork> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined in the environment variables');
   }
-};
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  const database = client.db(DATABASE_NAME);
+  const chainIdToNetworkMapCollection = database.collection("chainIdToNetworkMap");
+
+  const result = await chainIdToNetworkMapCollection.findOne({ appName: "tokenSupply" });
+
+  await client.close();
+
+  if (!result) {
+    throw new Error("chainIdToNetworkMap not found in the database.");
+  }
+
+  const chainIdToNetworkMap: ChainIdToNetwork = {};
+
+  for (const item of result.chainIdToNetworkMap) {
+    chainIdToNetworkMap[item.chainId] = {
+      jsonRpcUrl: item.jsonRpcUrl,
+      name: item.name,
+    };
+  }
+
+  return chainIdToNetworkMap;
+}
 
 async function getNetworkConfigurations(tokenContractAddress: string, chainId: number): Promise<NetworkConfigurations> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
@@ -39,6 +54,7 @@ async function getNetworkConfigurations(tokenContractAddress: string, chainId: n
   const data: GatewayCabnApiResponse = await response.json();
 
   const networks: NetworkConfigurations = {};
+  const chainIdToNetworkMap = await getChainIdToNetworkMap();
 
   for (const item of data.body.currencyAddressesByNetworks) {
     const network = chainIdToNetworkMap[item.network.chainId];
@@ -63,23 +79,23 @@ async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress
   const data: GatewayCabnApiResponse = await response.json();
 
   const nonCirculatingSupplyAddresses: AddressConfiguration[] = [];
+  const chainIdToNetworkMap = await getChainIdToNetworkMap();
 
   for (const item of nonCirculatingSupplyAddressesConfigInput) {
     const network = chainIdToNetworkMap[item.chainId]
     let networkItemFromGatewayConfig = data.body.currencyAddressesByNetworks.find(i => i.network.chainId === item.chainId);
-      nonCirculatingSupplyAddresses.push(
-        {
-          name: item.name,
-          address: item.address,
-          tokenContractAddress: networkItemFromGatewayConfig?.tokenContractAddress as string,
-          jsonRpcUrl: network.jsonRpcUrl,
-          chainId: item.chainId
-        }
-      )
+    nonCirculatingSupplyAddresses.push(
+      {
+        name: item.name,
+        address: item.address,
+        tokenContractAddress: networkItemFromGatewayConfig?.tokenContractAddress as string,
+        jsonRpcUrl: network.jsonRpcUrl,
+        chainId: item.chainId
+      }
+    )
   }
 
   return nonCirculatingSupplyAddresses;
 }
-
 
 export { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations };
