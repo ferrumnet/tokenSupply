@@ -10,13 +10,10 @@ import { MongoClient, ObjectId } from "mongodb";
 import { config } from 'dotenv';
 config();
 
-
-
 const API_URL = process.env.API_URL;
-
-
-// const MONGODB_URI = "mongodb+srv://tokenSupply_app_dev_qa_uat:M4T9dEmF4hpDTt5f@ferrum-netwrok-dev-qa-u.kyjw1.mongodb.net/?retryWrites=true&w=majority";
-const DATABASE_NAME = "ferrum-network-dev";
+const DATABASE_NAME = process.env.DATABASE_NAME;
+const DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS = process.env.DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS as string;
+const DB_COLLECTION_NAME_CHAIN_NETWORK_MAP = process.env.DB_COLLECTION_NAME_CHAIN_NETWORK_MAP as string;
 
 async function getChainIdToNetworkMap(): Promise<ChainIdToNetwork> {
   const MONGODB_URI = process.env.MONGODB_URI;
@@ -26,14 +23,14 @@ async function getChainIdToNetworkMap(): Promise<ChainIdToNetwork> {
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
   const database = client.db(DATABASE_NAME);
-  const chainIdToNetworkMapCollection = database.collection("chainIdToNetworkMap");
+  const chainIdToNetworkMapCollection = database.collection(DB_COLLECTION_NAME_CHAIN_NETWORK_MAP);
 
   const result = await chainIdToNetworkMapCollection.findOne({ appName: "tokenSupply" });
 
   await client.close();
 
   if (!result) {
-    throw new Error("chainIdToNetworkMap not found in the database.");
+    throw new Error(`${DB_COLLECTION_NAME_CHAIN_NETWORK_MAP} not found in the database.`);
   }
 
   const chainIdToNetworkMap: ChainIdToNetwork = {};
@@ -48,7 +45,7 @@ async function getChainIdToNetworkMap(): Promise<ChainIdToNetwork> {
   return chainIdToNetworkMap;
 }
 
-async function getNetworkConfigurations(tokenContractAddress: string, chainId: number): Promise<NetworkConfigurations> {
+async function getNetworkConfigurations(tokenContractAddress: string, chainId: number): Promise<{ networks: NetworkConfigurations, currencyId: string }> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
   const data: GatewayCabnApiResponse = await response.json();
@@ -66,20 +63,43 @@ async function getNetworkConfigurations(tokenContractAddress: string, chainId: n
       };
     }
   }
-  return networks;
+
+  // Get the currencyId from the response data
+  const currencyId = data.body.currencyAddressesByNetworks[0].currency._id;
+
+  return { networks, currencyId };
 }
 
-export const nonCirculatingSupplyAddressesConfigInput: AddressConfigurationInput[] = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "../config/", "nonCirculatingSupplyAddressesConfig.json"), "utf-8")
-);
 
-async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress: string, chainId: number): Promise<AddressConfiguration[]> {
+export async function getNonCirculatingSupplyAddressesConfigInput(currencyId: string): Promise<AddressConfigurationInput[]> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined in the environment variables');
+  }
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  const database = client.db(DATABASE_NAME);
+  const collection = database.collection(DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS);
+
+  const result = await collection.findOne({ currency: new ObjectId(currencyId) });
+
+  await client.close();
+
+  if (!result) {
+    throw new Error(`No non-circulating supply addresses configuration found for currency with ID: ${currencyId}`);
+  }
+
+  return result.nonCirculatingSupplyAddresses;
+}
+
+async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress: string, chainId: number, currencyId: string): Promise<AddressConfiguration[]> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
   const response = await fetch(url);
   const data: GatewayCabnApiResponse = await response.json();
 
   const nonCirculatingSupplyAddresses: AddressConfiguration[] = [];
   const chainIdToNetworkMap = await getChainIdToNetworkMap();
+  const nonCirculatingSupplyAddressesConfigInput = await getNonCirculatingSupplyAddressesConfigInput(currencyId);
 
   for (const item of nonCirculatingSupplyAddressesConfigInput) {
     const network = chainIdToNetworkMap[item.chainId]
@@ -99,3 +119,4 @@ async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress
 }
 
 export { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations };
+
