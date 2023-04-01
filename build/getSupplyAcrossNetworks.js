@@ -15,13 +15,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTotalSupplyAcrossNetworks = exports.getNonCirculatingSupplyBalances = void 0;
 const bignumber_js_1 = __importDefault(require("bignumber.js"));
 const web3_1 = __importDefault(require("web3"));
+const erc20Abi_json_1 = __importDefault(require("./erc20Abi.json"));
 const config_1 = require("./config");
 const utils_1 = require("./utils");
-function getNonCirculatingSupplyBalances(tokenContractAddress, chainId) {
+const erc20Abi = erc20Abi_json_1.default;
+function getNonCirculatingSupplyBalances(tokenContractAddress, chainId, currencyId) {
     return __awaiter(this, void 0, void 0, function* () {
         const nonCirculatingSupplyBalances = [];
         let total = new bignumber_js_1.default(0);
-        for (const { chainId: currentChainId, address, jsonRpcUrl, tokenContractAddress: currentTokenContractAddress, name, } of yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, chainId)) {
+        for (const { chainId: currentChainId, address, jsonRpcUrl, tokenContractAddress: currentTokenContractAddress, name, } of yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, chainId, currencyId)) {
             let balance;
             if (currentChainId === "bnbBeaconChain") {
                 balance = new bignumber_js_1.default(yield (0, utils_1.getBep2TokenBalance)(address, jsonRpcUrl, currentTokenContractAddress));
@@ -46,33 +48,12 @@ function getNonCirculatingSupplyBalances(tokenContractAddress, chainId) {
 }
 exports.getNonCirculatingSupplyBalances = getNonCirculatingSupplyBalances;
 const getTotalSupplyAcrossNetworks = (networks) => __awaiter(void 0, void 0, void 0, function* () {
-    const erc20ABI = [
-        // Some parts of the ABI have been removed for brevity
-        {
-            constant: true,
-            inputs: [],
-            name: "totalSupply",
-            outputs: [{ name: "", type: "uint256" }],
-            payable: false,
-            stateMutability: "view",
-            type: "function",
-        },
-        {
-            constant: true,
-            inputs: [],
-            name: "decimals",
-            outputs: [{ name: "", type: "uint8" }],
-            payable: false,
-            stateMutability: "view",
-            type: "function",
-        },
-    ];
     const supplyPerNetwork = {};
     let totalSupply = new bignumber_js_1.default(0);
     for (const network in networks) {
         const config = networks[network];
         const web3 = new web3_1.default(config.jsonRpcUrl);
-        const tokenContract = new web3.eth.Contract(erc20ABI, config.tokenContractAddress);
+        const tokenContract = new web3.eth.Contract(erc20Abi, config.tokenContractAddress);
         try {
             const [supply, decimals] = yield Promise.all([
                 tokenContract.methods.totalSupply().call(),
@@ -82,42 +63,12 @@ const getTotalSupplyAcrossNetworks = (networks) => __awaiter(void 0, void 0, voi
             const decimalsBN = new bignumber_js_1.default(10).pow(decimals);
             const supplyInEther = supplyBN.div(decimalsBN);
             totalSupply = totalSupply.plus(supplyInEther);
-            supplyPerNetwork[network] = supplyInEther.toString();
+            supplyPerNetwork[network] = supplyInEther.toFixed(18);
         }
         catch (error) {
             console.error(`Error getting total supply for ${network}:`, error.message);
         }
     }
-    return Object.assign(Object.assign({}, supplyPerNetwork), { total: totalSupply.toString() });
+    return Object.assign(Object.assign({}, supplyPerNetwork), { total: totalSupply.toFixed(18) });
 });
 exports.getTotalSupplyAcrossNetworks = getTotalSupplyAcrossNetworks;
-const erc20ABI = [
-    // Add necessary parts of the ABI, such as "balanceOf"
-    {
-        constant: true,
-        inputs: [],
-        name: "totalSupply",
-        outputs: [{ name: "", type: "uint256" }],
-        payable: false,
-        stateMutability: "view",
-        type: "function",
-    },
-    {
-        constant: true,
-        inputs: [],
-        name: "decimals",
-        outputs: [{ name: "", type: "uint8" }],
-        payable: false,
-        stateMutability: "view",
-        type: "function",
-    },
-    {
-        constant: true,
-        inputs: [{ name: "_owner", type: "address" }],
-        name: "balanceOf",
-        outputs: [{ name: "balance", type: "uint256" }],
-        payable: false,
-        stateMutability: "view",
-        type: "function",
-    },
-];

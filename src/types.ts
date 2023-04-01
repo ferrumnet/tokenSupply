@@ -47,6 +47,9 @@ export interface NonCirculatingSupplyBalance {
         network: {
           chainId: string;
         };
+        currency: {
+          _id: string;
+        }
         tokenContractAddress: string;
       }[];
     };
