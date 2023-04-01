@@ -20,6 +20,8 @@ const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 const API_URL = process.env.API_URL;
 const DATABASE_NAME = process.env.DATABASE_NAME;
+const DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS = process.env.DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS;
+const DB_COLLECTION_NAME_CHAIN_NETWORK_MAP = process.env.DB_COLLECTION_NAME_CHAIN_NETWORK_MAP;
 function getChainIdToNetworkMap() {
     return __awaiter(this, void 0, void 0, function* () {
         const MONGODB_URI = process.env.MONGODB_URI;
@@ -29,11 +31,11 @@ function getChainIdToNetworkMap() {
         const client = new mongodb_1.MongoClient(MONGODB_URI);
         yield client.connect();
         const database = client.db(DATABASE_NAME);
-        const chainIdToNetworkMapCollection = database.collection("chainIdToNetworkMap");
+        const chainIdToNetworkMapCollection = database.collection(DB_COLLECTION_NAME_CHAIN_NETWORK_MAP);
         const result = yield chainIdToNetworkMapCollection.findOne({ appName: "tokenSupply" });
         yield client.close();
         if (!result) {
-            throw new Error("chainIdToNetworkMap not found in the database.");
+            throw new Error(`${DB_COLLECTION_NAME_CHAIN_NETWORK_MAP} not found in the database.`);
         }
         const chainIdToNetworkMap = {};
         for (const item of result.chainIdToNetworkMap) {
@@ -77,7 +79,7 @@ function getNonCirculatingSupplyAddressesConfigInput(currencyId) {
         const client = new mongodb_1.MongoClient(MONGODB_URI);
         yield client.connect();
         const database = client.db(DATABASE_NAME);
-        const collection = database.collection("nonCirculatingSupplyAddressesConfig");
+        const collection = database.collection(DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS);
         const result = yield collection.findOne({ currency: new mongodb_1.ObjectId(currencyId) });
         yield client.close();
         if (!result) {
