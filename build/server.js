@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -32,7 +43,7 @@ app.get("/totalSupplyAcrossNetworks", (0, cacheMiddleware_1.default)(cacheDurati
             res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
             return;
         }
-        const networks = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
+        const { networks, currencyId } = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         res.json(totalSupplyData);
     }
@@ -47,7 +58,7 @@ app.get('/totalSupply', (0, cacheMiddleware_1.default)(cacheDuration), (req, res
             res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
             return;
         }
-        const networks = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
+        const { networks, currencyId } = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         res.send(totalSupplyData.total);
     }
@@ -62,8 +73,14 @@ app.get("/nonCirculatingSupplyAddresses", (0, cacheMiddleware_1.default)(cacheDu
         res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
         return;
     }
-    const nonCirculatingSupplyAddressConfigurations = yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, Number(chainId));
-    res.json(nonCirculatingSupplyAddressConfigurations);
+    const { networks, currencyId } = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
+    const nonCirculatingSupplyAddressConfigurations = yield (0, config_1.getNonCirculatingSupplyAddressConfigurations)(tokenContractAddress, Number(chainId), currencyId);
+    // Remove jsonRpcUrl from the response
+    const filteredResponse = nonCirculatingSupplyAddressConfigurations.map((_a) => {
+        var { jsonRpcUrl } = _a, rest = __rest(_a, ["jsonRpcUrl"]);
+        return rest;
+    });
+    res.json(filteredResponse);
 }));
 app.get('/nonCirculatingSupplyBalancesByAddress', (0, cacheMiddleware_1.default)(cacheDuration), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -72,7 +89,8 @@ app.get('/nonCirculatingSupplyBalancesByAddress', (0, cacheMiddleware_1.default)
             res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
             return;
         }
-        const nonCirculatingSupplyBalances = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId));
+        const { networks, currencyId } = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
+        const nonCirculatingSupplyBalances = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId), currencyId);
         res.json(nonCirculatingSupplyBalances);
     }
     catch (error) {
@@ -87,7 +105,8 @@ app.get('/nonCirculatingSupplyBalance', (0, cacheMiddleware_1.default)(cacheDura
             res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
             return;
         }
-        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId));
+        const { networks, currencyId } = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
+        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId), currencyId);
         const totalBalance = balances.reduce((sum, balance) => sum.plus(balance.balance), new bignumber_js_1.default(0));
         res.send(totalBalance.toString());
     }
@@ -103,10 +122,10 @@ app.get('/circulatingSupplyBalance', (0, cacheMiddleware_1.default)(cacheDuratio
             res.status(400).json({ error: 'Both tokenContractAddress and chainId must be provided as query parameters.' });
             return;
         }
-        const networks = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
+        const { networks, currencyId } = yield (0, config_1.getNetworkConfigurations)(tokenContractAddress, Number(chainId));
         const totalSupplyData = yield (0, getSupplyAcrossNetworks_1.getTotalSupplyAcrossNetworks)(networks);
         const totalSupply = new bignumber_js_1.default(totalSupplyData.total);
-        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId));
+        const { balances } = yield (0, getSupplyAcrossNetworks_1.getNonCirculatingSupplyBalances)(tokenContractAddress, Number(chainId), currencyId);
         const nonCirculatingSupply = balances.reduce((sum, balance) => sum.plus(balance.balance), new bignumber_js_1.default(0));
         const circulatingSupply = totalSupply.minus(nonCirculatingSupply);
         res.send(circulatingSupply.toString());
