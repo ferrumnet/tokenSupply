@@ -3,10 +3,18 @@ import express, { Request, Response, NextFunction } from "express";
 import bodyParser from 'body-parser';
 import BigNumber from "bignumber.js";
 import { getTotalSupplyAcrossNetworks, getNonCirculatingSupplyBalances } from "./getSupplyAcrossNetworks";
-import { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations } from "./config";
+import {
+  getNetworkConfigurations,
+  getNonCirculatingSupplyAddressConfigurations,
+  getTokenContractAddresses,
+  setNonCirculatingSupplyAddressConfigurations,
+  updateNonCirculatingSupplyAddressConfigurations,
+  getNonCirculatingSupplyAddressConfigurationsByTokenAndChain
+} from "./config";
 import { NonCirculatingSupplyBalance } from './types';
 import cacheMiddleware from './cacheMiddleware';
 import { config } from 'dotenv';
+import cors from 'cors';
 
 config();
 
@@ -16,6 +24,7 @@ const cacheDuration = Number(process.env.CACHE_DURATION || 300);
 
 
 app.use(bodyParser.json());
+app.use(cors());
 
 app.get("/totalSupplyAcrossNetworks", cacheMiddleware(cacheDuration), async (req, res) => {
   try {
@@ -128,6 +137,82 @@ app.get('/circulatingSupplyBalance', cacheMiddleware(cacheDuration), async (req,
     res.status(500).json({ error: 'Failed to fetch circulating supply balance' });
   }
 });
+
+app.get('/getTokenContractAddresses', cacheMiddleware(cacheDuration), async (req, res) => {
+  const { tokenContractAddress, chainId } = req.query;
+
+  if (!tokenContractAddress || !chainId) {
+    return res.status(400).json({ error: 'Both tokenContractAddress and chainId are required.' });
+  }
+
+  try {
+    const response = await getTokenContractAddresses(tokenContractAddress as string, parseInt(chainId as string));
+    return res.json(response);
+  } catch (error) {
+    console.error('Error fetching token contract addresses:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching token contract addresses.' });
+  }
+});
+
+app.post("/setNonCirculatingSupplyAddressConfigurations", async (req: Request, res: Response) => {
+  try {
+    const { currencyId, nonCirculatingSupplyAddresses } = req.body;
+
+    if (!currencyId || !nonCirculatingSupplyAddresses) {
+      return res.status(400).json({ error: 'Both currencyId and nonCirculatingSupplyAddresses must be provided in the request body.' });
+    }
+
+    const addedDocument = await setNonCirculatingSupplyAddressConfigurations(currencyId, nonCirculatingSupplyAddresses);
+    res.status(201).json({ success: true, statusCode: 201, status: 'Created', addedDocument });
+  } catch (error) {
+    console.error("Error setting non-circulating supply address configurations:", error);
+
+    if (error instanceof Error) {
+      if (error.message.includes("Non-Circulating Supply Addresses have already been configured")) {
+        res.status(409).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "An error occurred while setting non-circulating supply address configurations." });
+      }
+    } else {
+      res.status(500).json({ error: "An error occurred while setting non-circulating supply address configurations." });
+    }
+  }
+});
+
+app.put('/updateNonCirculatingSupplyAddressConfigurations', async (req, res) => {
+  try {
+    const { currencyId, nonCirculatingSupplyAddresses } = req.body;
+    const updatedConfig = await updateNonCirculatingSupplyAddressConfigurations(currencyId, nonCirculatingSupplyAddresses);
+    res.status(200).json(updatedConfig);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(400).json({ error: 'An unexpected error occurred' });
+    }
+  }
+});
+
+app.get('/nonCirculatingSupplyAddressConfig', async (req, res) => {
+  try {
+    const { tokenContractAddress, chainId } = req.query;
+
+    // Validate the input
+    if (!tokenContractAddress || !chainId) {
+      return res.status(400).json({ error: 'tokenContractAddress and chainId are required' });
+    }
+
+    const nonCirculatingSupplyAddresses = await getNonCirculatingSupplyAddressConfigurationsByTokenAndChain(tokenContractAddress as string, parseInt(chainId as string, 10));
+    res.status(200).json(nonCirculatingSupplyAddresses);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(400).json({ error: 'An unexpected error occurred' });
+    }
+  }
+});
+
 
 
 app.listen(port, () => {

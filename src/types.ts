@@ -46,12 +46,29 @@ export interface NonCirculatingSupplyBalance {
       currencyAddressesByNetworks: {
         network: {
           chainId: string;
+          name: string;
         };
         currency: {
           _id: string;
+          name: string;
+          symbol: string;
         }
         tokenContractAddress: string;
       }[];
     };
   }
+
+  export type TokenAddress = {
+    tokenContractAddress: string;
+    chainId: string;
+    networkName: string;
+  };  
+
+  export type TokenDetails = {
+    currencyId: string;
+    name: string;
+    symbol: string;
+  };
+  
+  
   

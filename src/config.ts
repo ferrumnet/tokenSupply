@@ -1,12 +1,20 @@
 // src/config.ts
 import fetch from "node-fetch";
-import { AddressConfiguration, AddressConfigurationInput, NetworkConfigurations, ChainIdToNetwork, GatewayCabnApiResponse } from "./types";
+import { 
+  AddressConfiguration, 
+  AddressConfigurationInput, 
+  NetworkConfigurations, 
+  ChainIdToNetwork, 
+  GatewayCabnApiResponse, 
+  TokenAddress, 
+  TokenDetails 
+} from "./types";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
 import erc20Abi from "./erc20Abi.json";
 import fs from "fs";
 import path from "path";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId, WithId, Document as MongoDocument } from "mongodb";
 import { config } from 'dotenv';
 config();
 
@@ -71,7 +79,7 @@ async function getNetworkConfigurations(tokenContractAddress: string, chainId: n
 }
 
 
-export async function getNonCirculatingSupplyAddressesConfigInput(currencyId: string): Promise<AddressConfigurationInput[]> {
+async function getNonCirculatingSupplyAddressesConfigInput(currencyId: string): Promise<AddressConfigurationInput[]> {
   const MONGODB_URI = process.env.MONGODB_URI;
   if (!MONGODB_URI) {
     throw new Error('MONGODB_URI is not defined in the environment variables');
@@ -91,6 +99,28 @@ export async function getNonCirculatingSupplyAddressesConfigInput(currencyId: st
 
   return result.nonCirculatingSupplyAddresses;
 }
+
+async function getNonCirculatingSupplyAddressesConfigInputRaw(currencyId: string): Promise<WithId<MongoDocument>> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined in the environment variables');
+  }
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  const database = client.db(DATABASE_NAME);
+  const collection = database.collection(DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS);
+
+  const result = await collection.findOne({ currency: new ObjectId(currencyId) });
+
+  await client.close();
+
+  if (!result) {
+    throw new Error(`No non-circulating supply addresses configuration found for currency with ID: ${currencyId}`);
+  }
+
+  return result;
+}
+
 
 async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress: string, chainId: number, currencyId: string): Promise<AddressConfiguration[]> {
   const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
@@ -118,5 +148,140 @@ async function getNonCirculatingSupplyAddressConfigurations(tokenContractAddress
   return nonCirculatingSupplyAddresses;
 }
 
-export { getNetworkConfigurations, getNonCirculatingSupplyAddressConfigurations };
+async function getTokenContractAddresses(tokenContractAddress: string, chainId: number): Promise<{ tokenDetails: TokenDetails, tokenAddresses: Array<TokenAddress> }> {
+  const url = `${API_URL}?tokenContractAddress=${tokenContractAddress}&chainId=${chainId}&offset=0`;
+  const response = await fetch(url);
+  const data: GatewayCabnApiResponse = await response.json();
+
+  const tokenAddresses: Array<TokenAddress> = [];
+
+  const firstItem = data.body.currencyAddressesByNetworks[0];
+  if (!firstItem) {
+    throw new Error('No data found in currencyAddressesByNetworks');
+  }
+
+  const tokenDetails: TokenDetails = {
+    currencyId: firstItem.currency._id,
+    name: firstItem.currency.name,
+    symbol: firstItem.currency.symbol,
+  };
+
+  for (const item of data.body.currencyAddressesByNetworks) {
+    tokenAddresses.push({
+      tokenContractAddress: item.tokenContractAddress,
+      chainId: item.network.chainId,
+      networkName: item.network.name,
+    });
+  }
+  return { tokenDetails, tokenAddresses };
+}
+
+async function setNonCirculatingSupplyAddressConfigurations(
+  currencyId: string,
+  nonCirculatingSupplyAddresses: AddressConfigurationInput[]
+): Promise<WithId<MongoDocument>> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined in the environment variables');
+  }
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  const database = client.db(DATABASE_NAME);
+  const collection = database.collection(DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS);
+
+  const newConfig = {
+    currency: new ObjectId(currencyId),
+    nonCirculatingSupplyAddresses,
+  };
+
+  try {
+    // Insert the document and store the result
+    const result = await collection.insertOne(newConfig);
+
+    // Retrieve the inserted document using insertedId
+    const insertedDocument = await collection.findOne({ _id: result.insertedId });
+
+    // Close the client connection
+    await client.close();
+
+    // Check if the insertedDocument is not null, otherwise throw an error
+    if (!insertedDocument) {
+      throw new Error("Failed to retrieve the inserted document");
+    }
+
+    // Return the inserted document
+    return insertedDocument;
+  } catch (error) {
+    await client.close();
+  
+    if ((error as any).code === 11000) {
+      throw new Error(
+        "Non-Circulating Supply Addresses have already been configured for this currency. If you'd like to update them, try the update form."
+      );
+    } else {
+      throw error;
+    }
+  }  
+}
+
+async function updateNonCirculatingSupplyAddressConfigurations(
+  currencyId: string,
+  nonCirculatingSupplyAddresses: AddressConfigurationInput[]
+): Promise<WithId<MongoDocument>> {
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined in the environment variables');
+  }
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  const database = client.db(DATABASE_NAME);
+  const collection = database.collection(DB_COLLECTION_NAME_NON_CIRCULATING_SUPPLY_ADDRESS);
+  console.log(currencyId);
+  try {
+    const result = await collection.updateOne(
+      { currency: new ObjectId(currencyId) },
+      { $set: { nonCirculatingSupplyAddresses } }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error('No non-circulating supply addresses configuration found for the specified currency ID');
+    }
+
+    const updatedDocument = await collection.findOne({ currency: new ObjectId(currencyId) });
+
+    await client.close();
+
+    if (!updatedDocument) {
+      throw new Error("Failed to retrieve the updated document");
+    }
+
+    return updatedDocument;
+  } catch (error) {
+    await client.close();
+    throw error;
+  }
+}
+
+async function getNonCirculatingSupplyAddressConfigurationsByTokenAndChain(tokenContractAddress: string, chainId: number): Promise<WithId<MongoDocument>> {
+  // Get network configurations and currencyId
+  const { networks, currencyId } = await getNetworkConfigurations(tokenContractAddress, chainId);
+
+  // Get non-circulating supply address configurations using the currencyId
+  const nonCirculatingSupplyAddresses = await getNonCirculatingSupplyAddressesConfigInputRaw(currencyId);
+
+  return nonCirculatingSupplyAddresses;
+}
+
+
+
+export { 
+  getNetworkConfigurations,
+  getNonCirculatingSupplyAddressesConfigInput,
+  getNonCirculatingSupplyAddressesConfigInputRaw, 
+  getNonCirculatingSupplyAddressConfigurations, 
+  getTokenContractAddresses,
+  setNonCirculatingSupplyAddressConfigurations,
+  updateNonCirculatingSupplyAddressConfigurations,
+  getNonCirculatingSupplyAddressConfigurationsByTokenAndChain
+};
 
