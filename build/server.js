@@ -162,7 +162,51 @@ app.post("/setNonCirculatingSupplyAddressConfigurations", (req, res) => __awaite
     }
     catch (error) {
         console.error("Error setting non-circulating supply address configurations:", error);
-        res.status(500).json({ error: "An error occurred while setting non-circulating supply address configurations." });
+        if (error instanceof Error) {
+            if (error.message.includes("Non-Circulating Supply Addresses have already been configured")) {
+                res.status(409).json({ error: error.message });
+            }
+            else {
+                res.status(500).json({ error: "An error occurred while setting non-circulating supply address configurations." });
+            }
+        }
+        else {
+            res.status(500).json({ error: "An error occurred while setting non-circulating supply address configurations." });
+        }
+    }
+}));
+app.put('/updateNonCirculatingSupplyAddressConfigurations', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { currencyId, nonCirculatingSupplyAddresses } = req.body;
+        const updatedConfig = yield (0, config_1.updateNonCirculatingSupplyAddressConfigurations)(currencyId, nonCirculatingSupplyAddresses);
+        res.status(200).json(updatedConfig);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            res.status(400).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({ error: 'An unexpected error occurred' });
+        }
+    }
+}));
+app.get('/nonCirculatingSupplyAddressConfig', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { tokenContractAddress, chainId } = req.query;
+        // Validate the input
+        if (!tokenContractAddress || !chainId) {
+            return res.status(400).json({ error: 'tokenContractAddress and chainId are required' });
+        }
+        const nonCirculatingSupplyAddresses = yield (0, config_1.getNonCirculatingSupplyAddressConfigurationsByTokenAndChain)(tokenContractAddress, parseInt(chainId, 10));
+        res.status(200).json(nonCirculatingSupplyAddresses);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            res.status(400).json({ error: error.message });
+        }
+        else {
+            res.status(400).json({ error: 'An unexpected error occurred' });
+        }
     }
 }));
 app.listen(port, () => {
